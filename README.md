@@ -1,5 +1,7 @@
 # VarianceCalc.com
 
+Live site: [variancecalc.com](https://variancecalc.com)
+
 A fast, distraction-free variance calculator. Paste any data set — messy
 spreadsheet columns included — and get sample or population variance, standard
 deviation, mean, count, and sum of squares, with every step worked out on your
