@@ -1,0 +1,48 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+---
+
+<Layout
+  title="Page Not Found — VarianceCalc"
+  description="The page you're looking for doesn't exist. Head back to the variance calculator."
+  skipTo="main-content"
+>
+  <SiteHeader />
+
+  <main id="main-content">
+    <section class="border-b border-hairline">
+      <div class="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-5 py-20 text-center sm:px-6">
+        <span
+          class="flex h-14 w-14 items-center justify-center rounded-md bg-ink font-mono text-2xl font-semibold text-canvas"
+          aria-hidden="true">σ²</span
+        >
+        <p class="mt-6 font-mono text-sm font-medium tracking-wide text-mute">ERROR 404</p>
+        <h1 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-ink text-balance sm:text-4xl">
+          Page not found
+        </h1>
+        <p class="mt-4 max-w-md text-base leading-relaxed text-body text-balance">
+          The page you're looking for doesn't exist, may have been moved, or the link may
+          be broken.
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/"
+            class="rounded-pill bg-ink px-5 py-2.5 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+          >
+            Go to the calculator
+          </a>
+          <a
+            href="/contact"
+            class="rounded-pill border border-hairline px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-well"
+          >
+            Report a broken link
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Layout>

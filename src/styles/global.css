@@ -1,0 +1,201 @@
+@import "tailwindcss";
+
+/* Self-hosted Geist Sans + Geist Mono (variable) */
+@import "@fontsource-variable/geist/index.css";
+@import "@fontsource-variable/geist-mono/index.css";
+
+/* ------------------------------------------------------------------ *
+ * Design tokens — Vercel / Geist system (see DESIGN.md)
+ * Only these generate Tailwind utilities (bg-canvas, text-ink, etc.)
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Type */
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, Arial, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Ink & text ladder */
+  --color-ink: #171717;
+  --color-body: #4d4d4d;
+  --color-mute: #8f8f8f;
+  --color-faint: #a1a1a1;
+
+  /* Surfaces */
+  --color-canvas: #fafafa;
+  --color-elevated: #ffffff;
+  --color-well: #f2f2f2;
+
+  /* Borders */
+  --color-hairline: #ebebeb;
+  --color-hairline-soft: #f2f2f2;
+
+  /* Accent / links */
+  --color-link: #0070f3;
+  --color-link-deep: #0761d1;
+  --color-link-soft: #d3e5ff;
+
+  /* Semantic */
+  --color-error: #ee0000;
+  --color-error-deep: #c50000;
+  --color-warning: #f5a623;
+  --color-warning-soft: #ffefcf;
+  --color-warning-deep: #ab570a;
+
+  /* Chromatic accents (gradient stops / illustration only) */
+  --color-violet: #7928ca;
+  --color-cyan: #50e3c2;
+  --color-pink: #ff0080;
+  --color-magenta: #eb367f;
+  --color-amber: #f9cb28;
+  --color-blue-bright: #007cf0;
+
+  /* Radius scale */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 100px;
+}
+
+/* Non-utility themed values */
+:root {
+  --scrollbar-thumb: #dcdcdc;
+}
+
+/* `dark:` variant keyed to the explicit theme attribute, not the media query,
+ * so the manual toggle always wins over the OS preference. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------ *
+ * Dark theme — overrides the same tokens, so every utility
+ * (bg-canvas, text-ink, border-hairline…) flips automatically.
+ * ------------------------------------------------------------------ */
+:root[data-theme="dark"] {
+  --color-ink: #ededed;
+  --color-body: #a1a1a1;
+  --color-mute: #8f8f8f;
+  --color-faint: #6e6e6e;
+
+  --color-canvas: #0a0a0a;
+  --color-elevated: #111111;
+  --color-well: #1c1c1c;
+
+  --color-hairline: #2e2e2e;
+  --color-hairline-soft: #1f1f1f;
+
+  --color-link: #52a8ff;
+  --color-link-deep: #8cc4ff;
+  --color-link-soft: #10233d;
+
+  --color-error: #ff5b5b;
+  --color-error-deep: #ff8080;
+  --color-warning-soft: #2b1f08;
+  --color-warning-deep: #f5b544;
+
+  --scrollbar-thumb: #3a3a3a;
+}
+
+/* ------------------------------------------------------------------ *
+ * Base — element defaults + browser-surface theming
+ * ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: var(--color-faint) transparent;
+    color-scheme: light;
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv01", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Text selection — brand wash, not the browser default blue */
+  ::selection {
+    background-color: var(--color-link-soft);
+    color: var(--color-ink);
+  }
+
+  /* Caret picks up the ink tone */
+  :where(input, textarea) {
+    caret-color: var(--color-ink);
+  }
+
+  /* Focus ring drawn from the accent, never the UA default */
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Underline offset for prose links */
+  a {
+    text-underline-offset: 2px;
+  }
+
+  /* Custom scrollbar (WebKit) tuned to the hairline palette */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 3px solid var(--color-canvas);
+    border-radius: var(--radius-pill);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-faint);
+  }
+
+  /* Interactive elements: kill the tap flash, avoid double-tap zoom delay */
+  :where(a, button, summary, label, input, textarea, select, [role="radiogroup"] label) {
+    -webkit-tap-highlight-color: transparent;
+  }
+  :where(a, button, summary, .example-chip, [role="radiogroup"] label) {
+    touch-action: manipulation;
+  }
+
+  /* Any numeric / measured data uses lining tabular figures */
+  .tnum {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum", "lnum";
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Small, stable component API
+ * ------------------------------------------------------------------ */
+@layer components {
+  /* Uppercase Geist Mono section eyebrow (spec-sheet label) */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-mute);
+  }
+}
+
+/* Respect reduced-motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

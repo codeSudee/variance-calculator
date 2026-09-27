@@ -1,0 +1,112 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const lastUpdated = "September 27, 2026";
+---
+
+<Layout
+  title="Privacy Policy — VarianceCalc"
+  description="VarianceCalc's privacy policy. All calculations run in your browser — no data is uploaded, logged, or stored on our servers."
+  skipTo="main-content"
+>
+  <SiteHeader currentPath="/privacy-policy" />
+
+  <main id="main-content">
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl px-5 pt-16 pb-12 sm:px-6 sm:pt-20">
+        <h1 class="text-4xl font-semibold tracking-[-0.03em] text-ink sm:text-5xl">Privacy Policy</h1>
+        <p class="mt-4 text-sm text-mute">Last updated: {lastUpdated}</p>
+      </div>
+    </section>
+
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl space-y-8 px-5 py-14 text-base leading-relaxed text-body sm:px-6 sm:py-16">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">The short version</h2>
+          <p class="mt-3">
+            VarianceCalc performs every calculation locally in your browser. The numbers
+            you paste or type are never sent to, processed by, or stored on our servers.
+            We don't run analytics or advertising trackers on this site.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Your calculator data</h2>
+          <p class="mt-3">
+            The dataset you enter into the calculator stays in your browser's memory and
+            is never transmitted anywhere automatically. The only exception is if you
+            explicitly click "Copy link" to share a result — that action encodes your
+            data and selected mode into the page URL (as <code class="font-mono text-sm">?d=</code> and
+            <code class="font-mono text-sm">?m=</code> query parameters) so it can be shared or
+            bookmarked. Simply typing, pasting, or editing data never changes the address bar
+            on its own.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Local storage</h2>
+          <p class="mt-3">
+            We use your browser's local storage to remember one thing: your light or dark
+            theme preference. This stays on your device and is never transmitted to us.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Server logs and hosting</h2>
+          <p class="mt-3">
+            Like any website, our hosting provider may automatically log standard technical
+            information for security and reliability purposes — such as IP address, browser
+            type, and request timestamps — for pages you request. This is standard web server
+            behavior, is not tied to any calculator data (which never leaves your browser),
+            and is not used for advertising or profiling.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Cookies</h2>
+          <p class="mt-3">
+            We do not use cookies for advertising or tracking. Any storage used is limited
+            to the local theme preference described above.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Third parties</h2>
+          <p class="mt-3">
+            We do not sell, rent, or share user data with third parties, because we do not
+            collect any calculator input to begin with. If this ever changes — for example,
+            if we introduce analytics — we will update this policy accordingly.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Children's privacy</h2>
+          <p class="mt-3">
+            This site is a general-purpose calculator and does not knowingly collect
+            personal information from anyone, including children.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Changes to this policy</h2>
+          <p class="mt-3">
+            If this policy changes, we will update this page and revise the "Last updated"
+            date above.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Contact</h2>
+          <p class="mt-3">
+            Questions about this policy? Visit our
+            <a href="/contact" class="text-link hover:underline">Contact Us</a> page.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Layout>

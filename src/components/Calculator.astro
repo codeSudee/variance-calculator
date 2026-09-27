@@ -1,0 +1,672 @@
+---
+// Calculator.astro — the interactive variance tool.
+// Markup is server-rendered; a client script wires live parsing + calculation.
+const examples = [
+  { label: "Test scores", data: "88, 92, 79, 93, 85, 74, 91, 100, 82, 96" },
+  { label: "With decimals", data: "2.5, 3.1, 2.9, 4.2, 3.8, 2.2" },
+  { label: "Includes negatives", data: "-4, -1, 0, 3, 5, -2, 6" },
+  { label: "Spreadsheet paste", data: "12\t15\t11\t18\t14\t16\t13" },
+];
+---
+
+<section
+  id="calculator"
+  class="scroll-mt-8 rounded-lg border border-hairline bg-elevated"
+  aria-labelledby="calc-heading"
+>
+  <h2 id="calc-heading" class="sr-only">Variance calculator</h2>
+
+  <div class="grid gap-0 lg:grid-cols-5">
+    <!-- ── Input column ─────────────────────────────────────────── -->
+    <div class="lg:col-span-2 lg:border-r lg:border-hairline">
+      <div class="flex flex-col gap-5 p-5 sm:p-6">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-baseline justify-between gap-3">
+            <label for="data-input" class="text-sm font-medium text-ink">
+              Your data set
+            </label>
+            <button
+              type="button"
+              id="clear-btn"
+              class="text-xs font-medium text-mute transition-colors hover:text-ink"
+              hidden
+            >
+              Clear
+            </button>
+          </div>
+          <textarea
+            id="data-input"
+            rows="7"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="Paste or type numbers — separated by commas, spaces, tabs, or new lines.&#10;&#10;e.g. 88, 92, 79, 93, 85"
+            class="tnum w-full resize-y rounded-md border border-hairline bg-elevated px-3.5 py-3 font-mono text-sm leading-relaxed text-ink placeholder:font-sans placeholder:text-faint aria-invalid:border-warning focus-visible:border-link"
+            aria-describedby="parse-status"
+          ></textarea>
+          <p id="parse-status" class="min-h-5 text-xs text-mute data-invalid:font-medium data-invalid:text-warning-deep" aria-live="polite"></p>
+        </div>
+
+        <!-- Example datasets -->
+        <div class="flex flex-col gap-2">
+          <span class="text-xs font-medium text-mute">Try an example</span>
+          <div class="flex flex-wrap gap-2">
+            {
+              examples.map((ex) => (
+                <button
+                  type="button"
+                  class="example-chip rounded-pill border border-hairline bg-elevated px-3 py-2 text-xs font-medium text-body transition-colors hover:border-faint hover:text-ink sm:py-1.5"
+                  data-example={ex.data}
+                >
+                  {ex.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+
+        <!-- Mode toggle -->
+        <fieldset class="flex flex-col gap-2.5">
+          <legend class="text-sm font-medium text-ink">Which variance?</legend>
+          <div
+            class="inline-flex w-full rounded-md border border-hairline bg-well p-1"
+            role="radiogroup"
+          >
+            <label
+              class="flex-1 cursor-pointer rounded-sm px-3 py-2 text-center text-sm font-medium text-mute transition-all select-none has-[:checked]:bg-elevated has-[:checked]:text-ink has-[:checked]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:has-[:checked]:bg-hairline has-[:focus-visible]:[outline:2px_solid_var(--color-link)] has-[:focus-visible]:outline-offset-2"
+            >
+              <input type="radio" name="mode" value="sample" class="sr-only" checked />
+              Sample <span class="font-mono text-xs text-mute">s²</span>
+            </label>
+            <label
+              class="flex-1 cursor-pointer rounded-sm px-3 py-2 text-center text-sm font-medium text-mute transition-all select-none has-[:checked]:bg-elevated has-[:checked]:text-ink has-[:checked]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:has-[:checked]:bg-hairline has-[:focus-visible]:[outline:2px_solid_var(--color-link)] has-[:focus-visible]:outline-offset-2"
+            >
+              <input type="radio" name="mode" value="population" class="sr-only" />
+              Population <span class="font-mono text-xs text-mute">σ²</span>
+            </label>
+          </div>
+          <p id="mode-explainer" class="text-xs leading-relaxed text-body"></p>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- ── Results column ───────────────────────────────────────── -->
+    <div class="lg:col-span-3">
+      <div class="flex h-full flex-col p-5 sm:p-6">
+        <!-- Empty state -->
+        <div id="empty-state" class="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="text-hairline">
+            <path d="M3 3v18h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M7 15l3-4 3 2 4-6" stroke="var(--color-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <p class="max-w-xs text-sm text-mute">
+            Enter a data set and your results appear here instantly — no button to press.
+          </p>
+        </div>
+
+        <!-- Invalid-entry warning: shown whenever any token couldn't be read,
+             including alongside results, so nothing is dropped silently.
+             Not a live region — #parse-status already announces the change. -->
+        <div id="invalid-warning" class="mb-6" hidden></div>
+
+        <!-- Message / edge-case panel -->
+        <div id="message" role="status" aria-live="polite" hidden></div>
+
+        <!-- Results -->
+        <div id="results" hidden>
+          <!-- Primary metric -->
+          <div class="flex flex-wrap items-end justify-between gap-4">
+            <div class="flex min-w-0 flex-col gap-1">
+              <span class="eyebrow" id="variance-label">Sample variance (s²)</span>
+              <span id="variance-value" class="tnum text-4xl font-semibold tracking-tight break-all text-ink sm:text-5xl">—</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                id="share-btn"
+                class="inline-flex items-center gap-1.5 rounded-sm border border-hairline bg-elevated px-3 py-2 text-xs font-medium text-body transition-colors hover:border-faint hover:text-ink sm:py-1.5"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="6" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8" />
+                  <circle cx="17" cy="6" r="2.6" stroke="currentColor" stroke-width="1.8" />
+                  <circle cx="17" cy="18" r="2.6" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M8.3 10.8 14.7 7.2M8.3 13.2l6.4 3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <span id="share-label">Copy link</span>
+              </button>
+              <button
+                type="button"
+                id="copy-btn"
+                class="inline-flex items-center gap-1.5 rounded-sm border border-hairline bg-elevated px-3 py-2 text-xs font-medium text-body transition-colors hover:border-faint hover:text-ink sm:py-1.5"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M5 15V5a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <span id="copy-label">Copy results</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary metrics -->
+          <dl class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-hairline bg-hairline sm:grid-cols-4">
+            <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
+              <dt class="text-xs font-medium text-mute">Std. deviation</dt>
+              <dd id="stat-sd" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
+            </div>
+            <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
+              <dt class="text-xs font-medium text-mute">Mean (x̄)</dt>
+              <dd id="stat-mean" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
+            </div>
+            <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
+              <dt class="text-xs font-medium text-mute">Count (n)</dt>
+              <dd id="stat-count" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
+            </div>
+            <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
+              <dt class="text-xs font-medium text-mute">Sum of squares</dt>
+              <dd id="stat-ss" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
+            </div>
+          </dl>
+
+          <!-- Deviation visualization -->
+          <figure class="mt-6" id="viz-wrap">
+            <figcaption class="mb-2 flex items-center justify-between text-xs text-mute">
+              <span>Each value’s distance from the mean</span>
+              <span class="hidden items-center gap-1.5 sm:flex">
+                <span class="inline-block h-2 w-2 rounded-full bg-link"></span> value
+                <span class="ml-2 inline-block h-3 w-px bg-ink"></span> mean
+              </span>
+            </figcaption>
+            <div id="viz" class="rounded-md border border-hairline bg-canvas p-4"></div>
+          </figure>
+
+          <!-- Step-by-step -->
+          <div class="mt-6">
+            <h3 class="mb-3 text-sm font-medium text-ink">Step-by-step, with your numbers</h3>
+            <ol id="steps" class="flex flex-col gap-4 text-sm"></ol>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  import {
+    analyze,
+    formatNumber,
+    formatStat,
+    formatValueList,
+    parseInput,
+    type Mode,
+    type Stats,
+  } from "../lib/variance";
+
+  const $ = <T extends HTMLElement = HTMLElement>(sel: string) =>
+    document.querySelector<T>(sel)!;
+
+  const dataInput = $<HTMLTextAreaElement>("#data-input");
+  const parseStatus = $("#parse-status");
+  const clearBtn = $<HTMLButtonElement>("#clear-btn");
+  const modeExplainer = $("#mode-explainer");
+  const emptyState = $("#empty-state");
+  const message = $("#message");
+  const invalidWarning = $("#invalid-warning");
+  const results = $("#results");
+  const varianceLabel = $("#variance-label");
+  const varianceValue = $("#variance-value");
+  const statSd = $("#stat-sd");
+  const statMean = $("#stat-mean");
+  const statCount = $("#stat-count");
+  const statSs = $("#stat-ss");
+  const steps = $<HTMLOListElement>("#steps");
+  const viz = $("#viz");
+  const copyBtn = $<HTMLButtonElement>("#copy-btn");
+  const copyLabel = $("#copy-label");
+  const shareBtn = $<HTMLButtonElement>("#share-btn");
+  const shareLabel = $("#share-label");
+  const exampleChips = document.querySelectorAll<HTMLButtonElement>(".example-chip");
+  const modeRadios = document.querySelectorAll<HTMLInputElement>('input[name="mode"]');
+
+  const MODE_TEXT: Record<Mode, string> = {
+    sample:
+      "Use this when your numbers are a sample drawn from a larger group. Divides by n − 1 (Bessel’s correction) so the estimate isn’t biased too low. This is the most common choice.",
+    population:
+      "Use this only when your numbers are the entire group you care about — every member, nothing left out. Divides by n.",
+  };
+
+  const currentMode = (): Mode =>
+    (document.querySelector<HTMLInputElement>('input[name="mode"]:checked')?.value as Mode) ??
+    "sample";
+
+  let lastSummaryText = "";
+
+  function esc(s: string): string {
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  // ── URL state sync ──────────────────────────────────────────────
+  // The working dataset lives only in memory/the textarea. The URL is left
+  // untouched while typing — it's only written when the user explicitly
+  // asks to share (see #share-btn below), so nothing is ever put in the
+  // address bar (history, browser autofill, etc.) without an explicit action.
+  function readUrlState() {
+    const p = new URLSearchParams(location.search);
+    const d = p.get("d");
+    const m = p.get("m");
+    if (d) dataInput.value = d;
+    if (m === "population" || m === "sample") {
+      const radio = document.querySelector<HTMLInputElement>(
+        `input[name="mode"][value="${m}"]`,
+      );
+      if (radio) radio.checked = true;
+    }
+  }
+
+  /** Build the shareable URL for the current dataset + mode, without writing it anywhere. */
+  function buildShareUrl(): string {
+    const p = new URLSearchParams();
+    const raw = dataInput.value.trim();
+    if (raw) p.set("d", raw);
+    if (currentMode() === "population") p.set("m", "population");
+    const qs = p.toString();
+    return `${location.origin}${location.pathname}${qs ? `?${qs}` : ""}`;
+  }
+
+  function show(el: HTMLElement, visible: boolean) {
+    el.hidden = !visible;
+  }
+
+  function render() {
+    const raw = dataInput.value;
+    const mode = currentMode();
+
+    modeExplainer.textContent = MODE_TEXT[mode];
+    clearBtn.hidden = raw.trim().length === 0;
+
+    // Live parse status
+    const { values, invalidTokens } = parseInput(raw);
+    const hasInvalid = invalidTokens.length > 0;
+    if (raw.trim().length === 0) {
+      parseStatus.textContent = "";
+    } else {
+      const noun = values.length === 1 ? "number" : "numbers";
+      let txt = `${values.length} valid ${noun}`;
+      if (hasInvalid) {
+        const shown = invalidTokens.slice(0, 4).map((t) => `“${t}”`).join(", ");
+        const more = invalidTokens.length > 4 ? `, +${invalidTokens.length - 4} more` : "";
+        const label = invalidTokens.length === 1 ? "Invalid entry" : "Invalid entries";
+        txt += ` · ${label}, not included: ${shown}${more}`;
+      }
+      parseStatus.textContent = txt;
+    }
+    // Flag the field itself so the problem is visible at the source.
+    // Styling comes from aria-invalid:/data-invalid: variants in the markup.
+    parseStatus.toggleAttribute("data-invalid", hasInvalid);
+    if (hasInvalid) dataInput.setAttribute("aria-invalid", "true");
+    else dataInput.removeAttribute("aria-invalid");
+
+    const state = analyze(raw, mode);
+
+    // Reset panels
+    show(emptyState, false);
+    show(message, false);
+    show(invalidWarning, false);
+    show(results, false);
+
+    switch (state.status) {
+      case "empty":
+        show(emptyState, true);
+        lastSummaryText = "";
+        return;
+
+      case "invalid":
+        renderInvalidWarning(state.invalidTokens, 0);
+        lastSummaryText = "";
+        return;
+
+      case "undefined-sample":
+        renderInvalidWarning(state.invalidTokens, state.stats.count);
+        // n = 1 in sample mode — division by zero.
+        renderMessage(
+          "info",
+          "Sample variance is undefined for a single value",
+          "Sample variance divides by n − 1, and with one data point that’s 0 — you can’t divide by zero. Add at least one more value, or switch to Population variance (which divides by n and equals 0 for a single point).",
+        );
+        lastSummaryText = "";
+        return;
+
+      case "ok":
+        renderInvalidWarning(state.invalidTokens, state.stats.count);
+        renderResults(state.stats, mode, state.invalidTokens);
+        return;
+    }
+  }
+
+  /**
+   * Prominent warning naming every entry that couldn't be read as a number.
+   * `validCount` is how many numbers the results were computed from (0 when
+   * nothing usable was entered). No-op when there are no invalid entries.
+   */
+  function renderInvalidWarning(invalidTokens: string[], validCount: number) {
+    if (invalidTokens.length === 0) return;
+
+    const n = invalidTokens.length;
+    const limit = 12;
+    const chips = invalidTokens
+      .slice(0, limit)
+      .map(
+        (t) =>
+          `<li><code class="inline-block max-w-full rounded-sm border border-warning bg-elevated px-1.5 py-0.5 font-mono text-xs break-all text-ink">${esc(t)}</code></li>`,
+      )
+      .join("");
+    const more = n > limit ? `<li class="self-center text-xs text-body">+${n - limit} more</li>` : "";
+
+    let title: string;
+    let body: string;
+    if (validCount === 0) {
+      title = "No valid numbers found";
+      body =
+        n === 1
+          ? "This entry isn’t a number, so there’s nothing to calculate. Enter values separated by commas, spaces, tabs, or new lines — for example: 4, 8, 15, 16, 23."
+          : "None of these entries are numbers, so there’s nothing to calculate. Enter values separated by commas, spaces, tabs, or new lines — for example: 4, 8, 15, 16, 23.";
+    } else {
+      const validNoun = validCount === 1 ? "number" : "numbers";
+      title =
+        n === 1
+          ? `“${invalidTokens[0]}” isn’t a valid number`
+          : `${n} entries aren’t valid numbers`;
+      body = `${n === 1 ? "It was" : "They were"} left out, so the results use only the ${validCount} valid ${validNoun}. Fix or remove ${n === 1 ? "it" : "them"} to be sure your results reflect your data.`;
+    }
+
+    invalidWarning.innerHTML = `
+      <div class="flex gap-3 rounded-md border border-warning p-4" style="background:var(--color-warning-soft)">
+        <div class="mt-0.5 shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3.5 2.5 20h19L12 3.5Z" stroke="var(--color-warning-deep)" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 10v4.5M12 17.2h.01" stroke="var(--color-warning-deep)" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="flex min-w-0 flex-col gap-2">
+          <p class="text-sm font-semibold break-all text-ink">${esc(title)}</p>
+          <p class="text-sm leading-relaxed text-body">${esc(body)}</p>
+          <ul class="flex flex-wrap gap-1.5" aria-label="Invalid entries">${chips}${more}</ul>
+        </div>
+      </div>`;
+    show(invalidWarning, true);
+  }
+
+  function renderMessage(
+    kind: "warning" | "info",
+    title: string,
+    body: string,
+  ) {
+    const accent =
+      kind === "warning"
+        ? { bar: "var(--color-warning)", bg: "var(--color-warning-soft)" }
+        : { bar: "var(--color-link)", bg: "var(--color-link-soft)" };
+    message.innerHTML = `
+      <div class="flex gap-3 rounded-md p-4" style="background:${accent.bg}">
+        <div class="mt-0.5 shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="${accent.bar}" stroke-width="1.8"/>
+            <path d="M12 8h.01M12 11v5" stroke="${accent.bar}" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="flex flex-col gap-1">
+          <p class="text-sm font-semibold text-ink">${esc(title)}</p>
+          <p class="text-sm leading-relaxed text-body">${esc(body)}</p>
+        </div>
+      </div>`;
+    show(message, true);
+  }
+
+  function renderResults(stats: Stats, mode: Mode, invalidTokens: string[]) {
+    show(results, true);
+
+    const sym = mode === "sample" ? "s²" : "σ²";
+    const sdSym = mode === "sample" ? "s" : "σ";
+    const label = mode === "sample" ? "Sample variance (s²)" : "Population variance (σ²)";
+
+    varianceLabel.textContent = label;
+    setStat(varianceValue, stats.variance!);
+    setStat(statSd, stats.standardDeviation!);
+    setStat(statMean, stats.mean);
+    statCount.textContent = String(stats.count);
+    statCount.removeAttribute("title");
+    setStat(statSs, stats.sumOfSquares);
+    fitStats();
+
+    renderSteps(stats, mode, sym, sdSym, invalidTokens);
+    renderViz(stats);
+
+    lastSummaryText = [
+      `Variance (${mode}) ${sym} = ${formatNumber(stats.variance!)}`,
+      `Standard deviation ${sdSym} = ${formatNumber(stats.standardDeviation!)}`,
+      `Mean x̄ = ${formatNumber(stats.mean)}`,
+      `Count n = ${stats.count}`,
+      `Sum of squares = ${formatNumber(stats.sumOfSquares)}`,
+      // Copied results must not hide that entries were excluded.
+      ...(invalidTokens.length > 0
+        ? [`Warning: excluded ${invalidTokens.length} invalid ${invalidTokens.length === 1 ? "entry" : "entries"}: ${invalidTokens.join(", ")}`]
+        : []),
+    ].join("\n");
+  }
+
+  /** Rounded value in the tile; full precision on hover when it differs. */
+  function setStat(el: HTMLElement, n: number) {
+    const shown = formatStat(n);
+    const full = formatNumber(n);
+    el.textContent = shown;
+    if (full !== shown) el.title = full;
+    else el.removeAttribute("title");
+  }
+
+  /**
+   * Shrink each stat tile's font until its value fits on one line.
+   * Starts from the CSS size (text-lg) and scales down proportionally,
+   * with a floor; text-ellipsis is the last-resort fallback.
+   */
+  const MIN_FIT_PX = 11;
+  function fitStats() {
+    if (results.hidden) return;
+    document.querySelectorAll<HTMLElement>(".stat-fit").forEach((el) => {
+      el.style.fontSize = "";
+      const avail = el.clientWidth;
+      if (avail === 0 || el.scrollWidth <= avail) return;
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      size = Math.max(MIN_FIT_PX, Math.floor(size * (avail / el.scrollWidth)));
+      el.style.fontSize = `${size}px`;
+      // Sub-pixel/kerning differences can leave it a hair too wide.
+      while (el.scrollWidth > el.clientWidth && size > MIN_FIT_PX) {
+        size -= 0.5;
+        el.style.fontSize = `${size}px`;
+      }
+    });
+  }
+
+  function stepShell(n: number, title: string, inner: string): string {
+    return `
+      <li class="flex gap-3">
+        <span class="tnum flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-hairline bg-elevated text-xs font-semibold text-mute">${n}</span>
+        <div class="flex min-w-0 flex-1 flex-col gap-1.5 pt-0.5">
+          <p class="font-medium text-ink">${title}</p>
+          ${inner}
+        </div>
+      </li>`;
+  }
+
+  function mathBlock(html: string): string {
+    return `<div class="tnum overflow-x-auto rounded-md border border-hairline bg-canvas px-3.5 py-2.5 font-mono text-[13px] leading-relaxed text-body">${html}</div>`;
+  }
+
+  function renderSteps(
+    stats: Stats,
+    mode: Mode,
+    sym: string,
+    sdSym: string,
+    invalidTokens: string[],
+  ) {
+    const values = stats.deviations.map((d) => d.value);
+    const denom = mode === "sample" ? stats.count - 1 : stats.count;
+    const denomExpr = mode === "sample" ? `(n − 1) = ${stats.count} − 1 = ${denom}` : `n = ${stats.count}`;
+
+    const listLimit = 10;
+    const devRows = stats.deviations
+      .slice(0, listLimit)
+      .map((d) => {
+        const dv = formatNumber(d.value);
+        const md = formatNumber(stats.mean);
+        const diff = formatNumber(d.deviation);
+        const sq = formatNumber(d.squared);
+        return `(${dv} − ${md})<span class="text-mute"> = </span>${diff}<span class="text-mute"> → </span>${diff}²<span class="text-mute"> = </span><span class="text-ink">${sq}</span>`;
+      })
+      .join('<br/>');
+    const devMore =
+      stats.deviations.length > listLimit
+        ? `<br/><span class="text-mute">… and ${stats.deviations.length - listLimit} more</span>`
+        : "";
+
+    const excludedNote =
+      invalidTokens.length > 0
+        ? `<p class="text-xs text-warning-deep">Not included (not numbers): ${esc(invalidTokens.slice(0, 8).map((t) => `“${t}”`).join(", "))}${invalidTokens.length > 8 ? ` +${invalidTokens.length - 8} more` : ""}</p>`
+        : "";
+
+    const meanStep = stepShell(
+      1,
+      "Find the mean (average)",
+      mathBlock(
+        `x̄ = (${esc(formatValueList(values))}) ÷ ${stats.count}` +
+          `<br/>x̄ = ${formatNumber(stats.sum)} ÷ ${stats.count} <span class="text-mute">=</span> <span class="text-ink">${formatNumber(stats.mean)}</span>`,
+      ) + excludedNote,
+    );
+
+    const devStep = stepShell(
+      2,
+      "Square each value's distance from the mean",
+      mathBlock(`${devRows}${devMore}`),
+    );
+
+    const ssStep = stepShell(
+      3,
+      "Add up the squared distances (sum of squares)",
+      mathBlock(
+        `SS = Σ(x − x̄)² <span class="text-mute">=</span> <span class="text-ink">${formatNumber(stats.sumOfSquares)}</span>`,
+      ),
+    );
+
+    const varStep = stepShell(
+      4,
+      mode === "sample" ? "Divide by n − 1" : "Divide by n",
+      mathBlock(
+        `${sym} = SS ÷ ${denomExpr}` +
+          `<br/>${sym} = ${formatNumber(stats.sumOfSquares)} ÷ ${denom} <span class="text-mute">=</span> <span class="text-ink font-semibold">${formatNumber(stats.variance!)}</span>`,
+      ),
+    );
+
+    const sdStep = stepShell(
+      5,
+      "Take the square root for standard deviation",
+      mathBlock(
+        `${sdSym} = √${sym} = √${formatNumber(stats.variance!)} <span class="text-mute">=</span> <span class="text-ink font-semibold">${formatNumber(stats.standardDeviation!)}</span>`,
+      ),
+    );
+
+    steps.innerHTML = meanStep + devStep + ssStep + varStep + sdStep;
+  }
+
+  function renderViz(stats: Stats) {
+    const min = stats.min;
+    const max = stats.max;
+    const span = max - min || 1;
+    // Pad the axis a touch so end dots aren't clipped.
+    const pad = span * 0.08;
+    const lo = min - pad;
+    const hi = max + pad;
+    const W = 100; // viewBox user units (percent-like)
+    const H = 44;
+    const midY = 22;
+    const x = (v: number) => ((v - lo) / (hi - lo)) * W;
+    const meanX = x(stats.mean);
+
+    const devLines = stats.deviations
+      .map((d) => {
+        const px = x(d.value);
+        return `<line x1="${px.toFixed(2)}" y1="${midY}" x2="${meanX.toFixed(2)}" y2="${midY}" stroke="var(--color-link-soft)" stroke-width="0.6" />`;
+      })
+      .join("");
+
+    const dots = stats.deviations
+      .map((d) => {
+        const px = x(d.value);
+        return `<circle cx="${px.toFixed(2)}" cy="${midY}" r="1.5" fill="var(--color-link)"><title>${esc(formatNumber(d.value))} (deviation ${esc(formatNumber(d.deviation))})</title></circle>`;
+      })
+      .join("");
+
+    viz.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" width="100%" height="72" preserveAspectRatio="none" role="img" aria-label="Number line showing each data point and the mean">
+        <line x1="0" y1="${midY}" x2="${W}" y2="${midY}" stroke="var(--color-hairline)" stroke-width="0.5" />
+        ${devLines}
+        <line x1="${meanX.toFixed(2)}" y1="${midY - 9}" x2="${meanX.toFixed(2)}" y2="${midY + 9}" stroke="var(--color-ink)" stroke-width="0.7" />
+        ${dots}
+      </svg>
+      <div class="tnum mt-1 flex justify-between font-mono text-[11px] text-faint">
+        <span>${esc(formatNumber(min))}</span>
+        <span class="text-mute">mean ${esc(formatNumber(stats.mean))}</span>
+        <span>${esc(formatNumber(max))}</span>
+      </div>`;
+  }
+
+  // ── Events ─────────────────────────────────────────────────────
+  dataInput.addEventListener("input", render);
+  modeRadios.forEach((r) => r.addEventListener("change", render));
+
+  clearBtn.addEventListener("click", () => {
+    dataInput.value = "";
+    dataInput.focus();
+    render();
+  });
+
+  exampleChips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      dataInput.value = chip.dataset.example ?? "";
+      render();
+      dataInput.focus();
+    });
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    if (!lastSummaryText) return;
+    try {
+      await navigator.clipboard.writeText(lastSummaryText);
+      copyLabel.textContent = "Copied";
+      setTimeout(() => (copyLabel.textContent = "Copy results"), 1600);
+    } catch {
+      copyLabel.textContent = "Press ⌘/Ctrl+C";
+      setTimeout(() => (copyLabel.textContent = "Copy results"), 1600);
+    }
+  });
+
+  shareBtn.addEventListener("click", async () => {
+    // The URL is only ever constructed here, on explicit user action —
+    // never written to the address bar or clipboard automatically.
+    const url = buildShareUrl();
+    try {
+      await navigator.clipboard.writeText(url);
+      shareLabel.textContent = "Link copied";
+      setTimeout(() => (shareLabel.textContent = "Copy link"), 1600);
+    } catch {
+      shareLabel.textContent = "Press ⌘/Ctrl+C";
+      setTimeout(() => (shareLabel.textContent = "Copy link"), 1600);
+    }
+  });
+
+  // Re-fit tiles when their width changes (viewport/layout) or web fonts swap in.
+  new ResizeObserver(() => fitStats()).observe(statSd);
+  document.fonts?.ready.then(fitStats);
+
+  // Initial paint
+  readUrlState();
+  render();
+</script>

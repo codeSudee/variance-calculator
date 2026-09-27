@@ -1,0 +1,57 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+---
+
+<Layout
+  title="About Us — VarianceCalc"
+  description="VarianceCalc is a free, private, browser-based variance and standard deviation calculator. Learn why we built it and how it works."
+  skipTo="main-content"
+>
+  <SiteHeader currentPath="/about" />
+
+  <main id="main-content">
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl px-5 pt-16 pb-12 sm:px-6 sm:pt-20">
+        <h1 class="text-4xl font-semibold tracking-[-0.03em] text-ink sm:text-5xl">About Us</h1>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-body sm:text-lg">
+          VarianceCalc is a small, focused tool built to make one job — calculating
+          variance and standard deviation — fast, clear, and trustworthy.
+        </p>
+      </div>
+    </section>
+
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl space-y-6 px-5 py-14 text-base leading-relaxed text-body sm:px-6 sm:py-16">
+        <h2 class="text-2xl font-semibold tracking-tight text-ink">Why we built this</h2>
+        <p>
+          Most online variance calculators either bury the answer behind ads and pop-ups,
+          fail on messy real-world input like spreadsheet columns pasted with stray commas
+          and currency symbols, or hide exactly how the result was computed. We wanted
+          something different: paste your numbers, get an instant answer, and see every
+          step of the math worked out on your own data — sample variance, population
+          variance, standard deviation, mean, count, and sum of squares, all in one place.
+        </p>
+        <h2 class="text-2xl font-semibold tracking-tight text-ink">How it works</h2>
+        <p>
+          The entire calculator runs client-side in your browser using a small, typed
+          statistics engine. Nothing you paste or type is ever uploaded to a server,
+          logged, or stored — the only time your data touches a URL is if you explicitly
+          click "Copy link" to share a result. There's no account, no installation, and
+          no tracking.
+        </p>
+        <h2 class="text-2xl font-semibold tracking-tight text-ink">Who it's for</h2>
+        <p>
+          Students checking homework, teachers building examples, analysts who need a
+          quick sanity check without opening a full statistics package, and anyone else
+          who just wants a correct answer explained clearly. If you have feedback or spot
+          something that looks wrong, we'd like to hear about it — see the
+          <a href="/contact" class="text-link hover:underline">Contact Us</a> page.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Layout>

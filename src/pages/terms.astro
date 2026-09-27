@@ -1,0 +1,107 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const lastUpdated = "September 27, 2026";
+---
+
+<Layout
+  title="Terms & Conditions — VarianceCalc"
+  description="Terms and conditions for using VarianceCalc, a free browser-based variance and standard deviation calculator."
+  skipTo="main-content"
+>
+  <SiteHeader currentPath="/terms" />
+
+  <main id="main-content">
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl px-5 pt-16 pb-12 sm:px-6 sm:pt-20">
+        <h1 class="text-4xl font-semibold tracking-[-0.03em] text-ink sm:text-5xl">
+          Terms &amp; Conditions
+        </h1>
+        <p class="mt-4 text-sm text-mute">Last updated: {lastUpdated}</p>
+      </div>
+    </section>
+
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl space-y-8 px-5 py-14 text-base leading-relaxed text-body sm:px-6 sm:py-16">
+        <p>
+          By using VarianceCalc ("the site", "this tool"), you agree to the following
+          terms. If you do not agree, please do not use the site.
+        </p>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Use of the service</h2>
+          <p class="mt-3">
+            VarianceCalc is provided free of charge for personal, educational, and
+            professional use. You may use it to calculate variance, standard deviation,
+            and related statistics on data you provide. You agree not to misuse the
+            service, including attempting to disrupt its operation, reverse-engineer it
+            for malicious purposes, or use it in a manner that violates applicable law.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">No warranty</h2>
+          <p class="mt-3">
+            The calculator is provided "as is" and "as available," without warranties of
+            any kind, express or implied, including but not limited to accuracy,
+            reliability, or fitness for a particular purpose. While we've built and tested
+            the underlying statistics engine carefully, VarianceCalc is a general-purpose
+            tool and should not be the sole basis for medical, financial, legal, safety,
+            or other high-stakes decisions. Always verify results that matter using a
+            second method or professional judgment.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Limitation of liability</h2>
+          <p class="mt-3">
+            To the fullest extent permitted by law, VarianceCalc and its operators are not
+            liable for any direct, indirect, incidental, or consequential damages arising
+            from your use of, or inability to use, this site or its calculations.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Your data</h2>
+          <p class="mt-3">
+            All calculations run locally in your browser; we do not receive or store the
+            data you enter. See our
+            <a href="/privacy-policy" class="text-link hover:underline">Privacy Policy</a>
+            for details. You are solely responsible for the data you choose to input and
+            for any link you generate and share using the "Copy link" feature.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Intellectual property</h2>
+          <p class="mt-3">
+            The design, branding, and code of VarianceCalc belong to their respective
+            owners. You may not copy, redistribute, or resell the site or its source as
+            your own product without permission.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Changes to the service or terms</h2>
+          <p class="mt-3">
+            We may update, modify, or discontinue features of the site at any time, and
+            may revise these terms as needed. Continued use of the site after changes are
+            posted constitutes acceptance of the updated terms.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Contact</h2>
+          <p class="mt-3">
+            Questions about these terms? Visit our
+            <a href="/contact" class="text-link hover:underline">Contact Us</a> page.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</Layout>

@@ -1,0 +1,43 @@
+---
+import ThemeToggle from "./ThemeToggle.astro";
+
+export interface Props {
+  /** Anchor links (Guide/FAQ) only resolve on the homepage; elsewhere they route back to "/". */
+  currentPath?: string;
+}
+
+const { currentPath = "/" } = Astro.props;
+
+const navLinks = [
+  { href: "/#guide", label: "Guide" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
+---
+
+<header class="border-b border-hairline">
+  <div class="mx-auto flex max-w-5xl items-center justify-between px-5 py-3.5 sm:px-6">
+    <a href="/" class="flex items-center gap-2 text-ink" aria-label="VarianceCalc home">
+      <span
+        class="flex h-6 w-6 items-center justify-center rounded-md bg-ink font-mono text-[13px] font-semibold text-canvas"
+        aria-hidden="true">σ²</span
+      >
+      <span class="text-[15px] font-semibold tracking-tight">VarianceCalc</span>
+    </a>
+    <nav class="flex items-center gap-1 text-sm" aria-label="Primary">
+      {
+        navLinks.map((link) => (
+          <a
+            href={link.href}
+            class="rounded-pill px-3 py-2.5 text-body transition-colors hover:bg-well hover:text-ink sm:py-1.5"
+            aria-current={currentPath === link.href ? "page" : undefined}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+      <ThemeToggle />
+    </nav>
+  </div>
+</header>
