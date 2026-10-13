@@ -1,11 +1,22 @@
 ---
 // Calculator.astro — the interactive variance tool.
 // Markup is server-rendered; a client script wires live parsing + calculation.
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+import { ui } from "../i18n/ui";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+// Client-side strings for the current language only, shipped as inert JSON.
+const clientStrings = Object.fromEntries(
+  Object.entries(ui[lang]).filter(([k]) => k.startsWith("calc.")),
+);
+
 const examples = [
-  { label: "Test scores", data: "88, 92, 79, 93, 85, 74, 91, 100, 82, 96" },
-  { label: "With decimals", data: "2.5, 3.1, 2.9, 4.2, 3.8, 2.2" },
-  { label: "Includes negatives", data: "-4, -1, 0, 3, 5, -2, 6" },
-  { label: "Spreadsheet paste", data: "12\t15\t11\t18\t14\t16\t13" },
+  { label: t("calc.example.scores"), data: "88, 92, 79, 93, 85, 74, 91, 100, 82, 96" },
+  { label: t("calc.example.decimals"), data: "2.5, 3.1, 2.9, 4.2, 3.8, 2.2" },
+  { label: t("calc.example.negatives"), data: "-4, -1, 0, 3, 5, -2, 6" },
+  { label: t("calc.example.spreadsheet"), data: "12\t15\t11\t18\t14\t16\t13" },
 ];
 ---
 
@@ -14,7 +25,8 @@ const examples = [
   class="scroll-mt-8 rounded-lg border border-hairline bg-elevated"
   aria-labelledby="calc-heading"
 >
-  <h2 id="calc-heading" class="sr-only">Variance calculator</h2>
+  <h2 id="calc-heading" class="sr-only">{t("calc.heading")}</h2>
+  <script type="application/json" id="calc-i18n" set:html={JSON.stringify({ lang, strings: clientStrings }).replace(/</g, "\\u003c")} />
 
   <div class="grid gap-0 lg:grid-cols-5">
     <!-- ── Input column ─────────────────────────────────────────── -->
@@ -23,7 +35,7 @@ const examples = [
         <div class="flex flex-col gap-2">
           <div class="flex items-baseline justify-between gap-3">
             <label for="data-input" class="text-sm font-medium text-ink">
-              Your data set
+              {t("calc.dataLabel")}
             </label>
             <button
               type="button"
@@ -31,7 +43,7 @@ const examples = [
               class="text-xs font-medium text-mute transition-colors hover:text-ink"
               hidden
             >
-              Clear
+              {t("calc.clear")}
             </button>
           </div>
           <textarea
@@ -39,7 +51,7 @@ const examples = [
             rows="7"
             autocomplete="off"
             spellcheck="false"
-            placeholder="Paste or type numbers — separated by commas, spaces, tabs, or new lines.&#10;&#10;e.g. 88, 92, 79, 93, 85"
+            placeholder={t("calc.placeholder")}
             class="tnum w-full resize-y rounded-md border border-hairline bg-elevated px-3.5 py-3 font-mono text-sm leading-relaxed text-ink placeholder:font-sans placeholder:text-faint aria-invalid:border-warning focus-visible:border-link"
             aria-describedby="parse-status"
           ></textarea>
@@ -48,7 +60,7 @@ const examples = [
 
         <!-- Example datasets -->
         <div class="flex flex-col gap-2">
-          <span class="text-xs font-medium text-mute">Try an example</span>
+          <span class="text-xs font-medium text-mute">{t("calc.examplesLabel")}</span>
           <div class="flex flex-wrap gap-2">
             {
               examples.map((ex) => (
@@ -66,7 +78,7 @@ const examples = [
 
         <!-- Mode toggle -->
         <fieldset class="flex flex-col gap-2.5">
-          <legend class="text-sm font-medium text-ink">Which variance?</legend>
+          <legend class="text-sm font-medium text-ink">{t("calc.modeLegend")}</legend>
           <div
             class="inline-flex w-full rounded-md border border-hairline bg-well p-1"
             role="radiogroup"
@@ -75,13 +87,13 @@ const examples = [
               class="flex-1 cursor-pointer rounded-sm px-3 py-2 text-center text-sm font-medium text-mute transition-all select-none has-[:checked]:bg-elevated has-[:checked]:text-ink has-[:checked]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:has-[:checked]:bg-hairline has-[:focus-visible]:[outline:2px_solid_var(--color-link)] has-[:focus-visible]:outline-offset-2"
             >
               <input type="radio" name="mode" value="sample" class="sr-only" checked />
-              Sample <span class="font-mono text-xs text-mute">s²</span>
+              {t("calc.mode.sample")} <span class="font-mono text-xs text-mute">s²</span>
             </label>
             <label
               class="flex-1 cursor-pointer rounded-sm px-3 py-2 text-center text-sm font-medium text-mute transition-all select-none has-[:checked]:bg-elevated has-[:checked]:text-ink has-[:checked]:shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:has-[:checked]:bg-hairline has-[:focus-visible]:[outline:2px_solid_var(--color-link)] has-[:focus-visible]:outline-offset-2"
             >
               <input type="radio" name="mode" value="population" class="sr-only" />
-              Population <span class="font-mono text-xs text-mute">σ²</span>
+              {t("calc.mode.population")} <span class="font-mono text-xs text-mute">σ²</span>
             </label>
           </div>
           <p id="mode-explainer" class="text-xs leading-relaxed text-body"></p>
@@ -99,7 +111,7 @@ const examples = [
             <path d="M7 15l3-4 3 2 4-6" stroke="var(--color-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <p class="max-w-xs text-sm text-mute">
-            Enter a data set and your results appear here instantly — no button to press.
+            {t("calc.empty")}
           </p>
         </div>
 
@@ -116,7 +128,7 @@ const examples = [
           <!-- Primary metric -->
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div class="flex min-w-0 flex-col gap-1">
-              <span class="eyebrow" id="variance-label">Sample variance (s²)</span>
+              <span class="eyebrow" id="variance-label">{t("calc.label.sample")}</span>
               <span id="variance-value" class="tnum text-4xl font-semibold tracking-tight break-all text-ink sm:text-5xl">—</span>
             </div>
             <div class="flex items-center gap-2">
@@ -131,7 +143,7 @@ const examples = [
                   <circle cx="17" cy="18" r="2.6" stroke="currentColor" stroke-width="1.8" />
                   <path d="M8.3 10.8 14.7 7.2M8.3 13.2l6.4 3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                 </svg>
-                <span id="share-label">Copy link</span>
+                <span id="share-label">{t("calc.copyLink")}</span>
               </button>
               <button
                 type="button"
@@ -142,7 +154,7 @@ const examples = [
                   <rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.8" />
                   <path d="M5 15V5a2 2 0 0 1 2-2h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                 </svg>
-                <span id="copy-label">Copy results</span>
+                <span id="copy-label">{t("calc.copyResults")}</span>
               </button>
             </div>
           </div>
@@ -150,19 +162,19 @@ const examples = [
           <!-- Secondary metrics -->
           <dl class="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md border border-hairline bg-hairline sm:grid-cols-4">
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
-              <dt class="text-xs font-medium text-mute">Std. deviation</dt>
+              <dt class="text-xs font-medium text-mute">{t("calc.stat.sd")}</dt>
               <dd id="stat-sd" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
             </div>
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
-              <dt class="text-xs font-medium text-mute">Mean (x̄)</dt>
+              <dt class="text-xs font-medium text-mute">{t("calc.stat.mean")}</dt>
               <dd id="stat-mean" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
             </div>
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
-              <dt class="text-xs font-medium text-mute">Count (n)</dt>
+              <dt class="text-xs font-medium text-mute">{t("calc.stat.count")}</dt>
               <dd id="stat-count" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
             </div>
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
-              <dt class="text-xs font-medium text-mute">Sum of squares</dt>
+              <dt class="text-xs font-medium text-mute">{t("calc.stat.ss")}</dt>
               <dd id="stat-ss" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
             </div>
           </dl>
@@ -170,10 +182,10 @@ const examples = [
           <!-- Deviation visualization -->
           <figure class="mt-6" id="viz-wrap">
             <figcaption class="mb-2 flex items-center justify-between text-xs text-mute">
-              <span>Each value’s distance from the mean</span>
+              <span>{t("calc.viz.caption")}</span>
               <span class="hidden items-center gap-1.5 sm:flex">
-                <span class="inline-block h-2 w-2 rounded-full bg-link"></span> value
-                <span class="ml-2 inline-block h-3 w-px bg-ink"></span> mean
+                <span class="inline-block h-2 w-2 rounded-full bg-link"></span> {t("calc.viz.value")}
+                <span class="ml-2 inline-block h-3 w-px bg-ink"></span> {t("calc.viz.mean")}
               </span>
             </figcaption>
             <div id="viz" class="rounded-md border border-hairline bg-canvas p-4"></div>
@@ -181,7 +193,7 @@ const examples = [
 
           <!-- Step-by-step -->
           <div class="mt-6">
-            <h3 class="mb-3 text-sm font-medium text-ink">Step-by-step, with your numbers</h3>
+            <h3 class="mb-3 text-sm font-medium text-ink">{t("calc.steps.heading")}</h3>
             <ol id="steps" class="flex flex-col gap-4 text-sm"></ol>
           </div>
         </div>
@@ -227,11 +239,35 @@ const examples = [
   const exampleChips = document.querySelectorAll<HTMLButtonElement>(".example-chip");
   const modeRadios = document.querySelectorAll<HTMLInputElement>('input[name="mode"]');
 
+  // ── i18n ────────────────────────────────────────────────────────
+  // Strings for the page language are embedded server-side as JSON.
+  const i18n = JSON.parse($("#calc-i18n").textContent ?? "{}") as {
+    lang: string;
+    strings: Record<string, string>;
+  };
+  const pluralRules = new Intl.PluralRules(i18n.lang);
+
+  /** Look up a string and fill {placeholders}. */
+  function tr(key: string, vars: Record<string, string | number> = {}): string {
+    const s = i18n.strings[key] ?? key;
+    return s.replace(/\{(\w+)\}/g, (m, name: string) =>
+      name in vars ? String(vars[name]) : m,
+    );
+  }
+
+  /** Pick `${base}.one` / `${base}.other` for count n (CLDR plural rules). */
+  function trn(base: string, n: number, vars: Record<string, string | number> = {}): string {
+    const cat = pluralRules.select(n) === "one" ? "one" : "other";
+    return tr(`${base}.${cat}`, { n, ...vars });
+  }
+
+  /** Language-appropriate quotation of an invalid token. */
+  const quote = (s: string) => tr("calc.quote", { s });
+  const listSep = tr("calc.listSep");
+
   const MODE_TEXT: Record<Mode, string> = {
-    sample:
-      "Use this when your numbers are a sample drawn from a larger group. Divides by n − 1 (Bessel’s correction) so the estimate isn’t biased too low. This is the most common choice.",
-    population:
-      "Use this only when your numbers are the entire group you care about — every member, nothing left out. Divides by n.",
+    sample: tr("calc.explain.sample"),
+    population: tr("calc.explain.population"),
   };
 
   const currentMode = (): Mode =>
@@ -291,13 +327,14 @@ const examples = [
     if (raw.trim().length === 0) {
       parseStatus.textContent = "";
     } else {
-      const noun = values.length === 1 ? "number" : "numbers";
-      let txt = `${values.length} valid ${noun}`;
+      let txt = trn("calc.status.valid", values.length);
       if (hasInvalid) {
-        const shown = invalidTokens.slice(0, 4).map((t) => `“${t}”`).join(", ");
-        const more = invalidTokens.length > 4 ? `, +${invalidTokens.length - 4} more` : "";
-        const label = invalidTokens.length === 1 ? "Invalid entry" : "Invalid entries";
-        txt += ` · ${label}, not included: ${shown}${more}`;
+        const shown = invalidTokens.slice(0, 4).map(quote).join(listSep);
+        const more =
+          invalidTokens.length > 4
+            ? listSep + tr("calc.more", { n: invalidTokens.length - 4 })
+            : "";
+        txt += ` · ${trn("calc.status.invalid", invalidTokens.length, { list: shown + more })}`;
       }
       parseStatus.textContent = txt;
     }
@@ -329,11 +366,7 @@ const examples = [
       case "undefined-sample":
         renderInvalidWarning(state.invalidTokens, state.stats.count);
         // n = 1 in sample mode — division by zero.
-        renderMessage(
-          "info",
-          "Sample variance is undefined for a single value",
-          "Sample variance divides by n − 1, and with one data point that’s 0 — you can’t divide by zero. Add at least one more value, or switch to Population variance (which divides by n and equals 0 for a single point).",
-        );
+        renderMessage("info", tr("calc.undef.title"), tr("calc.undef.body"));
         lastSummaryText = "";
         return;
 
@@ -361,23 +394,25 @@ const examples = [
           `<li><code class="inline-block max-w-full rounded-sm border border-warning bg-elevated px-1.5 py-0.5 font-mono text-xs break-all text-ink">${esc(t)}</code></li>`,
       )
       .join("");
-    const more = n > limit ? `<li class="self-center text-xs text-body">+${n - limit} more</li>` : "";
+    const more =
+      n > limit
+        ? `<li class="self-center text-xs text-body">${esc(tr("calc.more", { n: n - limit }))}</li>`
+        : "";
 
     let title: string;
     let body: string;
     if (validCount === 0) {
-      title = "No valid numbers found";
-      body =
-        n === 1
-          ? "This entry isn’t a number, so there’s nothing to calculate. Enter values separated by commas, spaces, tabs, or new lines — for example: 4, 8, 15, 16, 23."
-          : "None of these entries are numbers, so there’s nothing to calculate. Enter values separated by commas, spaces, tabs, or new lines — for example: 4, 8, 15, 16, 23.";
+      title = tr("calc.warn.none.title");
+      body = tr(n === 1 ? "calc.warn.none.body.one" : "calc.warn.none.body.other");
     } else {
-      const validNoun = validCount === 1 ? "number" : "numbers";
+      // Singular copy names the one token, so it keys off n === 1 rather than plural rules.
       title =
         n === 1
-          ? `“${invalidTokens[0]}” isn’t a valid number`
-          : `${n} entries aren’t valid numbers`;
-      body = `${n === 1 ? "It was" : "They were"} left out, so the results use only the ${validCount} valid ${validNoun}. Fix or remove ${n === 1 ? "it" : "them"} to be sure your results reflect your data.`;
+          ? tr("calc.warn.some.title.one", { token: invalidTokens[0] })
+          : tr("calc.warn.some.title.other", { n });
+      body = tr(n === 1 ? "calc.warn.some.body.one" : "calc.warn.some.body.other", {
+        valid: trn("calc.status.valid", validCount),
+      });
     }
 
     invalidWarning.innerHTML = `
@@ -391,7 +426,7 @@ const examples = [
         <div class="flex min-w-0 flex-col gap-2">
           <p class="text-sm font-semibold break-all text-ink">${esc(title)}</p>
           <p class="text-sm leading-relaxed text-body">${esc(body)}</p>
-          <ul class="flex flex-wrap gap-1.5" aria-label="Invalid entries">${chips}${more}</ul>
+          <ul class="flex flex-wrap gap-1.5" aria-label="${esc(tr("calc.invalidList"))}">${chips}${more}</ul>
         </div>
       </div>`;
     show(invalidWarning, true);
@@ -427,7 +462,7 @@ const examples = [
 
     const sym = mode === "sample" ? "s²" : "σ²";
     const sdSym = mode === "sample" ? "s" : "σ";
-    const label = mode === "sample" ? "Sample variance (s²)" : "Population variance (σ²)";
+    const label = tr(mode === "sample" ? "calc.label.sample" : "calc.label.population");
 
     varianceLabel.textContent = label;
     setStat(varianceValue, stats.variance!);
@@ -442,14 +477,14 @@ const examples = [
     renderViz(stats);
 
     lastSummaryText = [
-      `Variance (${mode}) ${sym} = ${formatNumber(stats.variance!)}`,
-      `Standard deviation ${sdSym} = ${formatNumber(stats.standardDeviation!)}`,
-      `Mean x̄ = ${formatNumber(stats.mean)}`,
-      `Count n = ${stats.count}`,
-      `Sum of squares = ${formatNumber(stats.sumOfSquares)}`,
+      `${label} = ${formatNumber(stats.variance!)}`,
+      `${tr("calc.summary.sd")} ${sdSym} = ${formatNumber(stats.standardDeviation!)}`,
+      `${tr("calc.summary.mean")} x̄ = ${formatNumber(stats.mean)}`,
+      `${tr("calc.summary.count")} n = ${stats.count}`,
+      `${tr("calc.summary.ss")} = ${formatNumber(stats.sumOfSquares)}`,
       // Copied results must not hide that entries were excluded.
       ...(invalidTokens.length > 0
-        ? [`Warning: excluded ${invalidTokens.length} invalid ${invalidTokens.length === 1 ? "entry" : "entries"}: ${invalidTokens.join(", ")}`]
+        ? [trn("calc.summary.warn", invalidTokens.length, { list: invalidTokens.join(listSep) })]
         : []),
     ].join("\n");
   }
@@ -525,17 +560,25 @@ const examples = [
       .join('<br/>');
     const devMore =
       stats.deviations.length > listLimit
-        ? `<br/><span class="text-mute">… and ${stats.deviations.length - listLimit} more</span>`
+        ? `<br/><span class="text-mute">${esc(tr("calc.step.more", { n: stats.deviations.length - listLimit }))}</span>`
         : "";
 
     const excludedNote =
       invalidTokens.length > 0
-        ? `<p class="text-xs text-warning-deep">Not included (not numbers): ${esc(invalidTokens.slice(0, 8).map((t) => `“${t}”`).join(", "))}${invalidTokens.length > 8 ? ` +${invalidTokens.length - 8} more` : ""}</p>`
+        ? `<p class="text-xs text-warning-deep">${esc(
+            tr("calc.step.excluded", {
+              list:
+                invalidTokens.slice(0, 8).map(quote).join(listSep) +
+                (invalidTokens.length > 8
+                  ? listSep + tr("calc.more", { n: invalidTokens.length - 8 })
+                  : ""),
+            }),
+          )}</p>`
         : "";
 
     const meanStep = stepShell(
       1,
-      "Find the mean (average)",
+      esc(tr("calc.step1")),
       mathBlock(
         `x̄ = (${esc(formatValueList(values))}) ÷ ${stats.count}` +
           `<br/>x̄ = ${formatNumber(stats.sum)} ÷ ${stats.count} <span class="text-mute">=</span> <span class="text-ink">${formatNumber(stats.mean)}</span>`,
@@ -544,13 +587,13 @@ const examples = [
 
     const devStep = stepShell(
       2,
-      "Square each value's distance from the mean",
+      esc(tr("calc.step2")),
       mathBlock(`${devRows}${devMore}`),
     );
 
     const ssStep = stepShell(
       3,
-      "Add up the squared distances (sum of squares)",
+      esc(tr("calc.step3")),
       mathBlock(
         `SS = Σ(x − x̄)² <span class="text-mute">=</span> <span class="text-ink">${formatNumber(stats.sumOfSquares)}</span>`,
       ),
@@ -558,7 +601,7 @@ const examples = [
 
     const varStep = stepShell(
       4,
-      mode === "sample" ? "Divide by n − 1" : "Divide by n",
+      esc(tr(mode === "sample" ? "calc.step4.sample" : "calc.step4.population")),
       mathBlock(
         `${sym} = SS ÷ ${denomExpr}` +
           `<br/>${sym} = ${formatNumber(stats.sumOfSquares)} ÷ ${denom} <span class="text-mute">=</span> <span class="text-ink font-semibold">${formatNumber(stats.variance!)}</span>`,
@@ -567,7 +610,7 @@ const examples = [
 
     const sdStep = stepShell(
       5,
-      "Take the square root for standard deviation",
+      esc(tr("calc.step5")),
       mathBlock(
         `${sdSym} = √${sym} = √${formatNumber(stats.variance!)} <span class="text-mute">=</span> <span class="text-ink font-semibold">${formatNumber(stats.standardDeviation!)}</span>`,
       ),
@@ -600,12 +643,12 @@ const examples = [
     const dots = stats.deviations
       .map((d) => {
         const px = x(d.value);
-        return `<circle cx="${px.toFixed(2)}" cy="${midY}" r="1.5" fill="var(--color-link)"><title>${esc(formatNumber(d.value))} (deviation ${esc(formatNumber(d.deviation))})</title></circle>`;
+        return `<circle cx="${px.toFixed(2)}" cy="${midY}" r="1.5" fill="var(--color-link)"><title>${esc(formatNumber(d.value))} (${esc(tr("calc.viz.deviation"))} ${esc(formatNumber(d.deviation))})</title></circle>`;
       })
       .join("");
 
     viz.innerHTML = `
-      <svg viewBox="0 0 ${W} ${H}" width="100%" height="72" preserveAspectRatio="none" role="img" aria-label="Number line showing each data point and the mean">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" height="72" preserveAspectRatio="none" role="img" aria-label="${esc(tr("calc.viz.aria"))}">
         <line x1="0" y1="${midY}" x2="${W}" y2="${midY}" stroke="var(--color-hairline)" stroke-width="0.5" />
         ${devLines}
         <line x1="${meanX.toFixed(2)}" y1="${midY - 9}" x2="${meanX.toFixed(2)}" y2="${midY + 9}" stroke="var(--color-ink)" stroke-width="0.7" />
@@ -613,7 +656,7 @@ const examples = [
       </svg>
       <div class="tnum mt-1 flex justify-between font-mono text-[11px] text-faint">
         <span>${esc(formatNumber(min))}</span>
-        <span class="text-mute">mean ${esc(formatNumber(stats.mean))}</span>
+        <span class="text-mute">${esc(tr("calc.viz.mean"))} ${esc(formatNumber(stats.mean))}</span>
         <span>${esc(formatNumber(max))}</span>
       </div>`;
   }
@@ -640,11 +683,11 @@ const examples = [
     if (!lastSummaryText) return;
     try {
       await navigator.clipboard.writeText(lastSummaryText);
-      copyLabel.textContent = "Copied";
-      setTimeout(() => (copyLabel.textContent = "Copy results"), 1600);
+      copyLabel.textContent = tr("calc.copied");
+      setTimeout(() => (copyLabel.textContent = tr("calc.copyResults")), 1600);
     } catch {
-      copyLabel.textContent = "Press ⌘/Ctrl+C";
-      setTimeout(() => (copyLabel.textContent = "Copy results"), 1600);
+      copyLabel.textContent = tr("calc.pressCopy");
+      setTimeout(() => (copyLabel.textContent = tr("calc.copyResults")), 1600);
     }
   });
 
@@ -654,11 +697,11 @@ const examples = [
     const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
-      shareLabel.textContent = "Link copied";
-      setTimeout(() => (shareLabel.textContent = "Copy link"), 1600);
+      shareLabel.textContent = tr("calc.linkCopied");
+      setTimeout(() => (shareLabel.textContent = tr("calc.copyLink")), 1600);
     } catch {
-      shareLabel.textContent = "Press ⌘/Ctrl+C";
-      setTimeout(() => (shareLabel.textContent = "Copy link"), 1600);
+      shareLabel.textContent = tr("calc.pressCopy");
+      setTimeout(() => (shareLabel.textContent = tr("calc.copyLink")), 1600);
     }
   });
 

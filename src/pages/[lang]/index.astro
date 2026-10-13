@@ -1,0 +1,14 @@
+---
+// Localized homepages: /es/, /ja/, /fr/, /de/, /pt/, /ko/, /it/.
+// English stays at "/" (src/pages/index.astro); see showDefaultLang in src/i18n/ui.ts.
+import type { GetStaticPaths } from "astro";
+import HomePage from "../../components/HomePage.astro";
+import { defaultLang, languages } from "../../i18n/ui";
+
+export const getStaticPaths = (() =>
+  Object.keys(languages)
+    .filter((lang) => lang !== defaultLang)
+    .map((lang) => ({ params: { lang } }))) satisfies GetStaticPaths;
+---
+
+<HomePage />

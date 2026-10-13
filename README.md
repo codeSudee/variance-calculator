@@ -8,8 +8,8 @@ deviation, mean, count, and sum of squares, with every step worked out on your
 real numbers.
 
 Built with [Astro](https://astro.build) + [Tailwind CSS v4](https://tailwindcss.com),
-styled on the Vercel/Geist design system. Self-hosted Geist Sans & Mono. No ads,
-no tracking — every calculation runs entirely in the browser.
+styled on the Vercel/Geist design system. Self-hosted Geist Sans & Mono. Every
+calculation runs entirely in the browser — calculator data never leaves it.
 
 ## Features
 
@@ -33,12 +33,22 @@ no tracking — every calculation runs entirely in the browser.
 ```
 src/
   lib/variance.ts          # Pure, typed parsing + stats engine (no DOM)
+  i18n/ui.ts               # Languages, default lang, localized routes
+  i18n/utils.ts            # t(), path + hreflang helpers
+  i18n/locales/*.ts        # en (source keys) + es, ja, fr, de, pt, ko, it
+  components/HomePage.astro    # Hero, calculator, guide, FAQ + structured data
   components/Calculator.astro  # Interactive tool (markup + client script)
-  pages/index.astro        # Hero, guide, FAQ, footer + structured data
-  layouts/Layout.astro     # Base HTML, SEO/OG metadata
+  components/LanguagePicker.astro
+  pages/index.astro        # English homepage (/)
+  pages/[lang]/index.astro # Localized homepages (/es/, /ja/, …)
+  pages/sitemap.xml.ts     # Sitemap with hreflang alternates
+  layouts/Layout.astro     # Base HTML, SEO/OG metadata, hreflang links
   styles/global.css        # Design tokens + browser-surface theming
 tests/variance.test.mjs    # Engine unit tests
 ```
+
+To add a language: create `src/i18n/locales/<code>.ts` (typed as `Dictionary`,
+so missing keys fail `astro check`), then register it in `src/i18n/ui.ts`.
 
 ## Commands
 

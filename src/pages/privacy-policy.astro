@@ -3,12 +3,12 @@ import Layout from "../layouts/Layout.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 
-const lastUpdated = "September 27, 2026";
+const lastUpdated = "October 13, 2026";
 ---
 
 <Layout
   title="Privacy Policy — VarianceCalc"
-  description="VarianceCalc's privacy policy. All calculations run in your browser — no data is uploaded, logged, or stored on our servers."
+  description="VarianceCalc's privacy policy. All calculations run in your browser — no data is uploaded, logged, or stored on our servers. The site may show Google AdSense ads."
   skipTo="main-content"
 >
   <SiteHeader currentPath="/privacy-policy" />
@@ -27,8 +27,10 @@ const lastUpdated = "September 27, 2026";
           <h2 class="text-2xl font-semibold tracking-tight text-ink">The short version</h2>
           <p class="mt-3">
             VarianceCalc performs every calculation locally in your browser. The numbers
-            you paste or type are never sent to, processed by, or stored on our servers.
-            We don't run analytics or advertising trackers on this site.
+            you paste or type are never sent to, processed by, or stored on our servers —
+            that data never leaves your browser. This site shows ads through Google
+            AdSense, which may use cookies to serve and measure ads; see the "Advertising"
+            section below for details.
           </p>
         </div>
 
@@ -59,25 +61,52 @@ const lastUpdated = "September 27, 2026";
             Like any website, our hosting provider may automatically log standard technical
             information for security and reliability purposes — such as IP address, browser
             type, and request timestamps — for pages you request. This is standard web server
-            behavior, is not tied to any calculator data (which never leaves your browser),
-            and is not used for advertising or profiling.
+            behavior and is not tied to any calculator data, which never leaves your browser.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight text-ink">Advertising</h2>
+          <p class="mt-3">
+            This site shows ads served by Google AdSense. Google and its advertising
+            partners may use cookies and similar technologies to serve ads based on your
+            prior visits to this or other websites, and to measure ad performance. This
+            advertising activity is separate from the calculator itself — your calculator
+            data is never shared with or used by any advertiser, because it never leaves
+            your browser in the first place. You can learn more about how Google uses
+            data, and opt out of personalized advertising, at
+            <a
+              href="https://policies.google.com/technologies/ads"
+              class="text-link hover:underline"
+              target="_blank"
+              rel="noopener noreferrer">Google's Ads Policy page</a
+            > and at
+            <a
+              href="https://adssettings.google.com"
+              class="text-link hover:underline"
+              target="_blank"
+              rel="noopener noreferrer">Google Ads Settings</a
+            >.
           </p>
         </div>
 
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-ink">Cookies</h2>
           <p class="mt-3">
-            We do not use cookies for advertising or tracking. Any storage used is limited
-            to the local theme preference described above.
+            Beyond the local theme preference described above, this site uses cookies
+            associated with Google AdSense, as described in the "Advertising" section
+            above.
           </p>
         </div>
 
         <div>
           <h2 class="text-2xl font-semibold tracking-tight text-ink">Third parties</h2>
           <p class="mt-3">
-            We do not sell, rent, or share user data with third parties, because we do not
-            collect any calculator input to begin with. If this ever changes — for example,
-            if we introduce analytics — we will update this policy accordingly.
+            We do not sell, rent, or share your calculator data with third parties, because
+            we do not collect any calculator input to begin with. Google AdSense, described
+            above, operates independently of the calculator and has its own privacy
+            practices. If this ever changes — for example, if we introduce analytics — we
+            will update this policy accordingly.
           </p>
         </div>
 

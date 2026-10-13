@@ -1,14 +1,19 @@
 ---
 // ThemeToggle.astro — switches light/dark. Initial theme is set by the inline
 // script in Layout.astro (saved choice → OS preference) before first paint.
+import { getLangFromUrl, useTranslations } from "../i18n/utils";
+
+const t = useTranslations(getLangFromUrl(Astro.url));
 ---
 
 <button
   type="button"
   id="theme-toggle"
   class="flex h-11 w-11 items-center justify-center rounded-pill text-body transition-colors hover:bg-well hover:text-ink sm:h-8 sm:w-8"
-  aria-label="Switch to dark mode"
-  title="Toggle dark mode"
+  aria-label={t("theme.toDark")}
+  title={t("theme.title")}
+  data-label-dark={t("theme.toDark")}
+  data-label-light={t("theme.toLight")}
 >
   <!-- Moon: shown in light mode -->
   <svg class="dark:hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -42,7 +47,10 @@
   function apply(theme: Theme) {
     root.dataset.theme = theme;
     meta?.setAttribute("content", theme === "dark" ? "#0a0a0a" : "#fafafa");
-    btn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+    btn.setAttribute(
+      "aria-label",
+      (theme === "dark" ? btn.dataset.labelLight : btn.dataset.labelDark) ?? "",
+    );
   }
 
   function hasSavedChoice(): boolean {
