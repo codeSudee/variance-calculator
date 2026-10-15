@@ -166,8 +166,11 @@ const examples = [
               <dd id="stat-sd" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
             </div>
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
-              <dt class="text-xs font-medium text-mute">{t("calc.stat.mean")}</dt>
-              <dd id="stat-mean" class="stat-fit tnum overflow-hidden text-lg leading-7 font-semibold text-ellipsis whitespace-nowrap text-ink">—</dd>
+              <dt class="flex items-center gap-1.5 text-xs font-medium text-mute">
+                <span class="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-link" aria-hidden="true"></span>
+                {t("calc.stat.mean")}
+              </dt>
+              <dd id="stat-mean" class="stat-fit tnum overflow-hidden text-xl leading-7 font-semibold text-ellipsis whitespace-nowrap text-link">—</dd>
             </div>
             <div class="flex min-w-0 flex-col gap-1 bg-elevated p-3.5">
               <dt class="text-xs font-medium text-mute">{t("calc.stat.count")}</dt>
@@ -185,7 +188,7 @@ const examples = [
               <span>{t("calc.viz.caption")}</span>
               <span class="hidden items-center gap-1.5 sm:flex">
                 <span class="inline-block h-2 w-2 rounded-full bg-link"></span> {t("calc.viz.value")}
-                <span class="ml-2 inline-block h-3 w-px bg-ink"></span> {t("calc.viz.mean")}
+                <span class="ml-2 inline-block h-3 w-px bg-link"></span> {t("calc.viz.mean")}
               </span>
             </figcaption>
             <div id="viz" class="rounded-md border border-hairline bg-canvas p-4"></div>
@@ -275,6 +278,13 @@ const examples = [
     "sample";
 
   let lastSummaryText = "";
+  // Tracks whether the results panel was already visible on the previous
+  // render, so the step-list reveal animation only plays on first appearance
+  // (not on every keystroke while results stay visible).
+  let resultsWasVisible = false;
+
+  const prefersReducedMotion = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   function esc(s: string): string {
     const d = document.createElement("div");
@@ -356,11 +366,13 @@ const examples = [
       case "empty":
         show(emptyState, true);
         lastSummaryText = "";
+        resultsWasVisible = false;
         return;
 
       case "invalid":
         renderInvalidWarning(state.invalidTokens, 0);
         lastSummaryText = "";
+        resultsWasVisible = false;
         return;
 
       case "undefined-sample":
@@ -368,12 +380,16 @@ const examples = [
         // n = 1 in sample mode — division by zero.
         renderMessage("info", tr("calc.undef.title"), tr("calc.undef.body"));
         lastSummaryText = "";
+        resultsWasVisible = false;
         return;
 
-      case "ok":
+      case "ok": {
         renderInvalidWarning(state.invalidTokens, state.stats.count);
-        renderResults(state.stats, mode, state.invalidTokens);
+        const isFirstReveal = !resultsWasVisible;
+        renderResults(state.stats, mode, state.invalidTokens, isFirstReveal);
+        resultsWasVisible = true;
         return;
+      }
     }
   }
 
@@ -457,7 +473,12 @@ const examples = [
     show(message, true);
   }
 
-  function renderResults(stats: Stats, mode: Mode, invalidTokens: string[]) {
+  function renderResults(
+    stats: Stats,
+    mode: Mode,
+    invalidTokens: string[],
+    isFirstReveal: boolean,
+  ) {
     show(results, true);
 
     const sym = mode === "sample" ? "s²" : "σ²";
@@ -465,15 +486,15 @@ const examples = [
     const label = tr(mode === "sample" ? "calc.label.sample" : "calc.label.population");
 
     varianceLabel.textContent = label;
-    setStat(varianceValue, stats.variance!);
-    setStat(statSd, stats.standardDeviation!);
-    setStat(statMean, stats.mean);
+    setStat(varianceValue, stats.variance!, { animate: true });
+    setStat(statSd, stats.standardDeviation!, { animate: true });
+    setStat(statMean, stats.mean, { animate: true });
     statCount.textContent = String(stats.count);
     statCount.removeAttribute("title");
     setStat(statSs, stats.sumOfSquares);
     fitStats();
 
-    renderSteps(stats, mode, sym, sdSym, invalidTokens);
+    renderSteps(stats, mode, sym, sdSym, invalidTokens, isFirstReveal);
     renderViz(stats);
 
     lastSummaryText = [
@@ -489,13 +510,51 @@ const examples = [
     ].join("\n");
   }
 
-  /** Rounded value in the tile; full precision on hover when it differs. */
-  function setStat(el: HTMLElement, n: number) {
+  const prevStatValues = new WeakMap<HTMLElement, number>();
+  const statTweens = new WeakMap<HTMLElement, number>();
+
+  function applyStatText(el: HTMLElement, n: number) {
     const shown = formatStat(n);
     const full = formatNumber(n);
     el.textContent = shown;
     if (full !== shown) el.title = full;
     else el.removeAttribute("title");
+  }
+
+  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+  /**
+   * Rounded value in the tile; full precision on hover when it differs.
+   * With `animate: true`, tweens from the previous value over ~200ms
+   * instead of snapping — skipped on first appearance and under
+   * prefers-reduced-motion, where it just sets the final value.
+   */
+  function setStat(el: HTMLElement, n: number, opts: { animate?: boolean } = {}) {
+    const prev = prevStatValues.get(el);
+    prevStatValues.set(el, n);
+
+    const pendingTween = statTweens.get(el);
+    if (pendingTween !== undefined) cancelAnimationFrame(pendingTween);
+
+    if (!opts.animate || prev === undefined || prev === n || prefersReducedMotion()) {
+      applyStatText(el, n);
+      return;
+    }
+
+    const duration = 200;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      if (t < 1) {
+        el.textContent = formatStat(prev + (n - prev) * easeOutCubic(t));
+        statTweens.set(el, requestAnimationFrame(tick));
+      } else {
+        statTweens.delete(el);
+        applyStatText(el, n);
+        fitStats();
+      }
+    };
+    statTweens.set(el, requestAnimationFrame(tick));
   }
 
   /**
@@ -542,6 +601,7 @@ const examples = [
     sym: string,
     sdSym: string,
     invalidTokens: string[],
+    isFirstReveal: boolean,
   ) {
     const values = stats.deviations.map((d) => d.value);
     const denom = mode === "sample" ? stats.count - 1 : stats.count;
@@ -617,6 +677,31 @@ const examples = [
     );
 
     steps.innerHTML = meanStep + devStep + ssStep + varStep + sdStep;
+
+    // Scroll-reveal each step, staggered — only on first appearance so
+    // retyping input doesn't replay the animation on every keystroke.
+    if (isFirstReveal && !prefersReducedMotion()) {
+      const items = Array.from(steps.children) as HTMLLIElement[];
+      items.forEach((li, i) => {
+        li.style.opacity = "0";
+        li.style.transform = "translateY(10px)";
+        li.style.transition = "opacity 300ms ease-out, transform 300ms ease-out";
+        li.style.transitionDelay = `${i * 60}ms`;
+      });
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const li = entry.target as HTMLLIElement;
+            li.style.opacity = "1";
+            li.style.transform = "translateY(0)";
+            io.unobserve(li);
+          });
+        },
+        { threshold: 0.15 },
+      );
+      items.forEach((li) => io.observe(li));
+    }
   }
 
   function renderViz(stats: Stats) {
@@ -650,9 +735,12 @@ const examples = [
     viz.innerHTML = `
       <svg viewBox="0 0 ${W} ${H}" width="100%" height="72" preserveAspectRatio="none" role="img" aria-label="${esc(tr("calc.viz.aria"))}">
         <line x1="0" y1="${midY}" x2="${W}" y2="${midY}" stroke="var(--color-hairline)" stroke-width="0.5" />
-        ${devLines}
-        <line x1="${meanX.toFixed(2)}" y1="${midY - 9}" x2="${meanX.toFixed(2)}" y2="${midY + 9}" stroke="var(--color-ink)" stroke-width="0.7" />
-        ${dots}
+        <g class="viz-animate">
+          ${devLines}
+          <line x1="${meanX.toFixed(2)}" y1="${midY - 9}" x2="${meanX.toFixed(2)}" y2="${midY + 9}" stroke="var(--color-link)" stroke-width="0.7" />
+          <polygon points="${(meanX - 1.8).toFixed(2)},${midY - 13} ${(meanX + 1.8).toFixed(2)},${midY - 13} ${meanX.toFixed(2)},${midY - 9}" fill="var(--color-link)" />
+          ${dots}
+        </g>
       </svg>
       <div class="tnum mt-1 flex justify-between font-mono text-[11px] text-faint">
         <span>${esc(formatNumber(min))}</span>
