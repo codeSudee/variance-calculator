@@ -205,6 +205,18 @@
   animation: viz-fade-scale 400ms ease-out;
 }
 
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
 /* Respect reduced-motion globally */
 @media (prefers-reduced-motion: reduce) {
   *,
