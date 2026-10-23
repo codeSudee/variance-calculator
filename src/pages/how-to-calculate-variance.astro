@@ -1,0 +1,79 @@
+---
+import GuidePage from "../components/GuidePage.astro";
+
+const faqs = [
+  {
+    q: "What is the formula for variance?",
+    a: "Population variance is σ² = Σ(x − μ)² / N. Sample variance is s² = Σ(x − x̄)² / (n − 1). Both add up the squared distances from the mean; the sample version divides by n − 1 instead of n.",
+  },
+  {
+    q: "Why do we divide by n − 1 for sample variance?",
+    a: "A sample's own mean sits closer to its data than the true population mean does, so dividing by n underestimates the spread. Dividing by n − 1 (Bessel's correction) removes that bias.",
+  },
+  {
+    q: "Can variance be negative?",
+    a: "No. Variance is an average of squared values, so it is zero or positive. It is zero only when every value is identical.",
+  },
+  {
+    q: "How is variance related to standard deviation?",
+    a: "Standard deviation is the square root of variance. It is expressed in the same units as the data, which makes it easier to interpret.",
+  },
+];
+---
+
+<GuidePage
+  title="How to Calculate Variance — Step-by-Step Guide with Examples"
+  description="Learn how to calculate variance by hand: sample vs population formulas, a worked example with 8 numbers, and common mistakes. Check your answer with the free calculator."
+  path="/how-to-calculate-variance"
+  heading="How to Calculate Variance"
+  intro="Variance measures how far a set of numbers spreads out from its mean. Here is the method, step by step, with a worked example you can check in the calculator."
+  breadcrumbName="How to Calculate Variance"
+  faqs={faqs}
+  published="2026-10-23"
+  modified="2026-10-23"
+>
+  <h2>The variance formulas</h2>
+  <p>
+    For a full population of <em>N</em> values with mean μ: <code>σ² = Σ(x − μ)² / N</code>.
+    For a sample of <em>n</em> values with mean x̄: <code>s² = Σ(x − x̄)² / (n − 1)</code>.
+    Use the population formula only when your data is every member of the group you care
+    about; otherwise use the sample formula.
+  </p>
+
+  <h2>Step-by-step method</h2>
+  <ol>
+    <li>Add up all the values and divide by how many there are to get the <strong>mean</strong>.</li>
+    <li>Subtract the mean from each value to get its <strong>deviation</strong>.</li>
+    <li><strong>Square</strong> each deviation so negatives do not cancel positives.</li>
+    <li>Add the squares together. This is the <strong>sum of squares</strong>.</li>
+    <li>Divide by <code>N</code> for population variance or <code>n − 1</code> for sample variance.</li>
+  </ol>
+
+  <h2>Worked example</h2>
+  <p>Data set: <code>2, 4, 4, 4, 5, 5, 7, 9</code> (n = 8).</p>
+  <ol>
+    <li>Mean: (2 + 4 + 4 + 4 + 5 + 5 + 7 + 9) / 8 = 40 / 8 = <strong>5</strong>.</li>
+    <li>Deviations: −3, −1, −1, −1, 0, 0, 2, 4.</li>
+    <li>Squared deviations: 9, 1, 1, 1, 0, 0, 4, 16.</li>
+    <li>Sum of squares: 9 + 1 + 1 + 1 + 0 + 0 + 4 + 16 = <strong>32</strong>.</li>
+    <li>Population variance: 32 / 8 = <strong>4</strong> (standard deviation 2).</li>
+    <li>Sample variance: 32 / 7 ≈ <strong>4.5714</strong> (standard deviation ≈ 2.1381).</li>
+  </ol>
+  <p>
+    Paste the same numbers into the <a href="/">variance calculator</a> to see each of these
+    steps worked out automatically.
+  </p>
+
+  <h2>Common mistakes</h2>
+  <ul class="list-disc space-y-2 pl-6">
+    <li>Using the population formula on a sample, which understates the spread.</li>
+    <li>Squaring the data instead of the deviations from the mean.</li>
+    <li>Forgetting that variance is in squared units; take the square root for standard deviation.</li>
+  </ul>
+
+  <h2>Related</h2>
+  <p>
+    Need the spread in the original units? See the
+    <a href="/standard-deviation-calculator">standard deviation calculator</a>.
+  </p>
+</GuidePage>

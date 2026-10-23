@@ -1,0 +1,60 @@
+---
+import GuidePage from "../components/GuidePage.astro";
+
+const faqs = [
+  {
+    q: "How do I calculate standard deviation?",
+    a: "Find the variance (the average squared distance from the mean, dividing by n − 1 for a sample or N for a population), then take its square root.",
+  },
+  {
+    q: "What is the difference between sample and population standard deviation?",
+    a: "Population standard deviation (σ) divides the sum of squares by N and describes a full population. Sample standard deviation (s) divides by n − 1 and estimates the population's spread from a sample.",
+  },
+  {
+    q: "Is standard deviation the square root of variance?",
+    a: "Yes. s = √s² and σ = √σ². Standard deviation shares the units of your data, while variance is in squared units.",
+  },
+  {
+    q: "Does the calculator upload my data?",
+    a: "No. Everything runs in your browser; nothing you paste is sent to a server.",
+  },
+];
+---
+
+<GuidePage
+  title="Standard Deviation Calculator — Sample & Population, with Steps"
+  description="Calculate standard deviation online for a sample or a population. Paste your numbers to get standard deviation, variance, mean and sum of squares, with the working shown."
+  path="/standard-deviation-calculator"
+  heading="Standard Deviation Calculator"
+  intro="Standard deviation is the square root of variance. Use the free calculator to get both for a sample or a population, with every step shown."
+  breadcrumbName="Standard Deviation Calculator"
+  faqs={faqs}
+  published="2026-10-23"
+  modified="2026-10-23"
+>
+  <h2>Calculate standard deviation now</h2>
+  <p>
+    Open the <a href="/">variance calculator</a>, paste your numbers (commas, spaces, or
+    spreadsheet columns all work), and choose sample or population. The result panel shows
+    the standard deviation alongside the variance, mean, count, and sum of squares.
+  </p>
+
+  <h2>Formulas</h2>
+  <p>Sample standard deviation: <code>s = √( Σ(x − x̄)² / (n − 1) )</code></p>
+  <p>Population standard deviation: <code>σ = √( Σ(x − μ)² / N )</code></p>
+
+  <h2>Sample or population?</h2>
+  <p>
+    Choose <strong>population</strong> when your data includes every member of the group
+    (for example, all test scores in one class). Choose <strong>sample</strong> when your
+    data is a subset used to estimate a larger group. When unsure, sample is the safer choice.
+  </p>
+
+  <h2>Example</h2>
+  <p>
+    For <code>2, 4, 4, 4, 5, 5, 7, 9</code> the mean is 5 and the sum of squares is 32.
+    Population standard deviation is √(32 / 8) = <strong>2</strong>; sample standard deviation
+    is √(32 / 7) ≈ <strong>2.1381</strong>. The full method is in
+    <a href="/how-to-calculate-variance">how to calculate variance</a>.
+  </p>
+</GuidePage>

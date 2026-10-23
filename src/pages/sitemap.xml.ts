@@ -12,6 +12,8 @@ interface Entry {
 
 // English-only pages (no translations → no alternates).
 const englishOnly: Entry[] = [
+  { path: "/standard-deviation-calculator", changefreq: "monthly", priority: "0.8" },
+  { path: "/how-to-calculate-variance", changefreq: "monthly", priority: "0.8" },
   { path: "/about", changefreq: "yearly", priority: "0.5" },
   { path: "/contact", changefreq: "yearly", priority: "0.5" },
   { path: "/privacy-policy", changefreq: "yearly", priority: "0.3" },
@@ -21,6 +23,9 @@ const englishOnly: Entry[] = [
 const localizedMeta: Record<string, Omit<Entry, "path">> = {
   "/": { changefreq: "monthly", priority: "1.0" },
 };
+
+// Build date: fresh on every deploy.
+const lastmod = new Date().toISOString().slice(0, 10);
 
 export const GET: APIRoute = ({ site }) => {
   const base = site ?? new URL("https://variancecalc.com");
@@ -35,14 +40,14 @@ export const GET: APIRoute = ({ site }) => {
     for (const lang of Object.keys(languages) as Lang[]) {
       const loc = new URL(useTranslatedPath(lang)(path), base).href;
       urls.push(
-        `  <url>\n    <loc>${loc}</loc>\n${alternates}\n    <changefreq>${meta.changefreq}</changefreq>\n    <priority>${meta.priority}</priority>\n  </url>`,
+        `  <url>\n    <loc>${loc}</loc>\n${alternates}\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${meta.changefreq}</changefreq>\n    <priority>${meta.priority}</priority>\n  </url>`,
       );
     }
   }
 
   for (const e of englishOnly) {
     urls.push(
-      `  <url>\n    <loc>${new URL(e.path, base).href}</loc>\n    <changefreq>${e.changefreq}</changefreq>\n    <priority>${e.priority}</priority>\n  </url>`,
+      `  <url>\n    <loc>${new URL(e.path, base).href}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${e.changefreq}</changefreq>\n    <priority>${e.priority}</priority>\n  </url>`,
     );
   }
 

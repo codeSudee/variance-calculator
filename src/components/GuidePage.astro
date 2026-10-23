@@ -1,0 +1,98 @@
+---
+// GuidePage.astro — shared shell for English-only SEO guide pages.
+import Layout from "../layouts/Layout.astro";
+import SiteHeader from "./SiteHeader.astro";
+import SiteFooter from "./SiteFooter.astro";
+
+export interface Props {
+  title: string;
+  description: string;
+  path: string;
+  heading: string;
+  intro: string;
+  breadcrumbName: string;
+  faqs?: { q: string; a: string }[];
+  published: string;
+  modified: string;
+}
+
+const { title, description, path, heading, intro, breadcrumbName, faqs = [], published, modified } = Astro.props;
+const url = new URL(path, Astro.site ?? "https://variancecalc.com").href;
+
+const graph: Record<string, unknown>[] = [
+  {
+    "@type": "Article",
+    headline: heading,
+    description,
+    mainEntityOfPage: url,
+    datePublished: published,
+    dateModified: modified,
+    inLanguage: "en",
+    author: { "@id": "https://variancecalc.com/#organization" },
+    publisher: { "@id": "https://variancecalc.com/#organization" },
+  },
+];
+if (faqs.length) {
+  graph.push({
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  });
+}
+const schema = JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c");
+---
+
+<Layout
+  title={title}
+  description={description}
+  skipTo="main-content"
+  ogType="article"
+  breadcrumbs={[{ name: breadcrumbName, path }]}
+>
+  <Fragment slot="head">
+    <script type="application/ld+json" set:html={schema} />
+  </Fragment>
+
+  <SiteHeader currentPath={path} />
+
+  <main id="main-content">
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl px-5 pt-16 pb-12 sm:px-6 sm:pt-20">
+        <h1 class="text-4xl font-semibold tracking-[-0.03em] text-ink text-balance sm:text-5xl">{heading}</h1>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-body sm:text-lg">{intro}</p>
+        <a
+          href="/"
+          class="mt-6 inline-flex rounded-pill bg-ink px-5 py-2.5 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
+          >Open the variance calculator</a
+        >
+      </div>
+    </section>
+
+    <section class="border-b border-hairline">
+      <div class="mx-auto max-w-3xl space-y-6 px-5 py-14 text-base leading-relaxed text-body sm:px-6 sm:py-16 [&_h2]:pt-4 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:tracking-tight [&_h2]:text-ink [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_a]:text-link [&_a:hover]:underline [&_code]:font-mono [&_code]:text-ink">
+        <slot />
+      </div>
+    </section>
+
+    {
+      faqs.length > 0 && (
+        <section class="border-b border-hairline">
+          <div class="mx-auto max-w-3xl space-y-6 px-5 py-14 sm:px-6 sm:py-16">
+            <h2 class="text-2xl font-semibold tracking-tight text-ink">Frequently asked questions</h2>
+            {faqs.map((f) => (
+              <div>
+                <h3 class="text-base font-semibold text-ink">{f.q}</h3>
+                <p class="mt-2 text-base leading-relaxed text-body">{f.a}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+  </main>
+
+  <SiteFooter />
+</Layout>

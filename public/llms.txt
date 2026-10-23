@@ -1,0 +1,16 @@
+# VarianceCalc
+
+> Free online variance calculator. Paste any data set to get sample variance (s²), population variance (σ²), standard deviation, mean, count and sum of squares, with every step worked out on your own numbers. Runs entirely in the browser; no data is uploaded. Available in English, Spanish, Japanese, French, German, Portuguese, Korean and Italian.
+
+## Tools
+- [Variance Calculator](https://variancecalc.com/): sample and population variance with step-by-step working
+- [Standard Deviation Calculator](https://variancecalc.com/standard-deviation-calculator): standard deviation, sample vs population
+
+## Guides
+- [How to Calculate Variance](https://variancecalc.com/how-to-calculate-variance): step-by-step method with a worked example and formulas
+
+## About
+- [About](https://variancecalc.com/about)
+- [Contact](https://variancecalc.com/contact)
+- [Privacy Policy](https://variancecalc.com/privacy-policy)
+- [Terms](https://variancecalc.com/terms)
