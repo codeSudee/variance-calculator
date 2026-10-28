@@ -12,13 +12,13 @@ interface Entry {
 
 // English-only pages (no translations → no alternates).
 const englishOnly: Entry[] = [
-  { path: "/standard-deviation-calculator", changefreq: "monthly", priority: "0.8" },
-  { path: "/percent-variance-calculator", changefreq: "monthly", priority: "0.8" },
-  { path: "/how-to-calculate-variance", changefreq: "monthly", priority: "0.8" },
-  { path: "/about", changefreq: "yearly", priority: "0.5" },
-  { path: "/contact", changefreq: "yearly", priority: "0.5" },
-  { path: "/privacy-policy", changefreq: "yearly", priority: "0.3" },
-  { path: "/terms", changefreq: "yearly", priority: "0.3" },
+  { path: "/standard-deviation-calculator/", changefreq: "monthly", priority: "0.8" },
+  { path: "/percent-variance-calculator/", changefreq: "monthly", priority: "0.8" },
+  { path: "/how-to-calculate-variance/", changefreq: "monthly", priority: "0.8" },
+  { path: "/about/", changefreq: "yearly", priority: "0.5" },
+  { path: "/contact/", changefreq: "yearly", priority: "0.5" },
+  { path: "/privacy-policy/", changefreq: "yearly", priority: "0.3" },
+  { path: "/terms/", changefreq: "yearly", priority: "0.3" },
 ];
 
 const localizedMeta: Record<string, Omit<Entry, "path">> = {

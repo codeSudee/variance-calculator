@@ -4,14 +4,14 @@
 
 ## Tools
 - [Variance Calculator](https://variancecalc.com/): sample and population variance with step-by-step working
-- [Standard Deviation Calculator](https://variancecalc.com/standard-deviation-calculator): standard deviation, sample vs population
-- [Percent Variance Calculator](https://variancecalc.com/percent-variance-calculator): variance between two numbers (budget vs actual) as an amount and a percentage
+- [Standard Deviation Calculator](https://variancecalc.com/standard-deviation-calculator/): standard deviation, sample vs population
+- [Percent Variance Calculator](https://variancecalc.com/percent-variance-calculator/): variance between two numbers (budget vs actual) as an amount and a percentage
 
 ## Guides
-- [How to Calculate Variance](https://variancecalc.com/how-to-calculate-variance): step-by-step method with a worked example and formulas
+- [How to Calculate Variance](https://variancecalc.com/how-to-calculate-variance/): step-by-step method with a worked example and formulas
 
 ## About
-- [About](https://variancecalc.com/about)
-- [Contact](https://variancecalc.com/contact)
-- [Privacy Policy](https://variancecalc.com/privacy-policy)
-- [Terms](https://variancecalc.com/terms)
+- [About](https://variancecalc.com/about/)
+- [Contact](https://variancecalc.com/contact/)
+- [Privacy Policy](https://variancecalc.com/privacy-policy/)
+- [Terms](https://variancecalc.com/terms/)
