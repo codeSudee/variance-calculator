@@ -183,6 +183,15 @@ const structuredData = {
         </h2>
         <div data-scroll-reveal class="mt-6 space-y-5 text-base leading-relaxed text-body">
           {seoParagraphs.map((p) => <p set:html={rich(p)} />)}
+          {
+            lang === "en" && (
+              <p>
+                Comparing two numbers, like budget vs actual? Use the{" "}
+                <a href="/percent-variance-calculator" class="text-link hover:underline">percent variance calculator</a>{" "}
+                to get the variance between two numbers as an amount and a percentage.
+              </p>
+            )
+          }
         </div>
       </div>
     </section>

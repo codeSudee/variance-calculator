@@ -1,0 +1,157 @@
+---
+import GuidePage from "../components/GuidePage.astro";
+
+const faqs = [
+  {
+    q: "How do I calculate the variance between two numbers?",
+    a: "Subtract the original (or budgeted) number from the new (or actual) number to get the variance. To express it as a percentage, divide that difference by the original number and multiply by 100: variance % = (new − original) / |original| × 100.",
+  },
+  {
+    q: "What is the formula for variance percentage?",
+    a: "Variance % = (actual − budget) / |budget| × 100. A positive result means the actual figure is above the budget or baseline; a negative result means it is below.",
+  },
+  {
+    q: "Is percent variance the same as statistical variance?",
+    a: "No. Percent variance compares two numbers (such as budget vs actual) and is used in finance and reporting. Statistical variance measures how spread out a whole data set is around its mean. For that, use the variance calculator on the homepage.",
+  },
+  {
+    q: "What is the difference between percent variance and percent difference?",
+    a: "Percent variance (percent change) measures the change relative to the original value, so the order matters. Percent difference compares two values without a direction, dividing their absolute difference by their average.",
+  },
+  {
+    q: "What if the original number is zero?",
+    a: "Percent variance is undefined when the original value is zero, because you cannot divide by zero. The calculator still shows the absolute variance in that case.",
+  },
+];
+---
+
+<GuidePage
+  title="Percent Variance Calculator — Variance Between Two Numbers"
+  description="Calculate the variance between two numbers as a value and a percentage. Enter budget vs actual (or old vs new) to get the variance, variance %, and percent difference instantly."
+  path="/percent-variance-calculator"
+  heading="Percent Variance Calculator"
+  intro="Find the variance between two numbers, such as budget vs actual or last month vs this month, as an amount and as a percentage."
+  breadcrumbName="Percent Variance Calculator"
+  faqs={faqs}
+  published="2026-10-28"
+  modified="2026-10-28"
+  ctaHref="#percent-calc"
+  ctaLabel="Calculate variance %"
+>
+  <div id="percent-calc" class="scroll-mt-8 rounded-lg border border-hairline bg-elevated p-5 sm:p-6">
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="flex flex-col gap-2">
+        <label for="pv-original" class="text-sm font-medium text-ink">Original / budget value</label>
+        <input
+          id="pv-original"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          value="1200"
+          class="tnum w-full rounded-md border border-hairline bg-elevated px-3.5 py-2.5 font-mono text-sm text-ink focus-visible:border-link"
+        />
+      </div>
+      <div class="flex flex-col gap-2">
+        <label for="pv-new" class="text-sm font-medium text-ink">New / actual value</label>
+        <input
+          id="pv-new"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          value="1500"
+          class="tnum w-full rounded-md border border-hairline bg-elevated px-3.5 py-2.5 font-mono text-sm text-ink focus-visible:border-link"
+        />
+      </div>
+    </div>
+    <dl class="mt-6 grid gap-4 sm:grid-cols-3" aria-live="polite">
+      <div>
+        <dt class="text-xs font-medium text-mute">Variance (new − original)</dt>
+        <dd id="pv-diff" class="tnum mt-1 font-mono text-2xl font-semibold text-ink">300</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-mute">Variance %</dt>
+        <dd id="pv-pct" class="tnum mt-1 font-mono text-2xl font-semibold text-ink">+25%</dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-mute">Percent difference</dt>
+        <dd id="pv-pdiff" class="tnum mt-1 font-mono text-2xl font-semibold text-ink">22.2222%</dd>
+      </div>
+    </dl>
+    <p id="pv-steps" class="mt-4 font-mono text-xs leading-relaxed text-mute">
+      (1500 − 1200) / |1200| × 100 = +25%
+    </p>
+  </div>
+
+  <h2>Percent variance formula</h2>
+  <p><code>Variance = New − Original</code></p>
+  <p><code>Variance % = (New − Original) / |Original| × 100</code></p>
+  <p>
+    In budgeting, "original" is the budget or forecast and "new" is the actual figure. A positive
+    variance means the actual came in above budget; a negative one means it came in below.
+  </p>
+
+  <h2>Example: budget vs actual</h2>
+  <p>
+    You budgeted <strong>$1,200</strong> for marketing and spent <strong>$1,500</strong>. The
+    variance is 1,500 − 1,200 = <strong>$300</strong>. The variance percentage is 300 / 1,200 × 100 =
+    <strong>25%</strong> over budget.
+  </p>
+
+  <h2>Percent variance vs percent difference</h2>
+  <p>
+    Percent variance has a direction: it measures change from a starting value. Percent
+    difference has none. It divides the gap by the average of the two values:
+    <code>|a − b| / ((a + b) / 2) × 100</code>. Use percent difference when neither number is the
+    baseline, for example when comparing two measurements.
+  </p>
+
+  <h2>Looking for statistical variance?</h2>
+  <p>
+    To measure how spread out a whole data set is, use the <a href="/">variance calculator</a>
+    (sample and population, with steps) or read
+    <a href="/how-to-calculate-variance">how to calculate variance</a>.
+  </p>
+</GuidePage>
+
+<script>
+  import { formatStat } from "../lib/variance";
+
+  const orig = document.getElementById("pv-original") as HTMLInputElement;
+  const next = document.getElementById("pv-new") as HTMLInputElement;
+  const diffEl = document.getElementById("pv-diff")!;
+  const pctEl = document.getElementById("pv-pct")!;
+  const pdiffEl = document.getElementById("pv-pdiff")!;
+  const stepsEl = document.getElementById("pv-steps")!;
+
+  const parse = (s: string) => {
+    const cleaned = s.replace(/[$€£¥,\s%]/g, "");
+    return cleaned === "" ? NaN : Number(cleaned);
+  };
+  const signed = (n: number) => (n > 0 ? "+" : "") + formatStat(n);
+
+  function update() {
+    const a = parse(orig.value);
+    const b = parse(next.value);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) {
+      diffEl.textContent = pctEl.textContent = pdiffEl.textContent = "—";
+      stepsEl.textContent = "Enter two numbers.";
+      return;
+    }
+    const diff = b - a;
+    diffEl.textContent = signed(diff);
+    if (a === 0) {
+      pctEl.textContent = "—";
+      stepsEl.textContent = "Percent variance is undefined when the original value is 0.";
+    } else {
+      const pct = (diff / Math.abs(a)) * 100;
+      pctEl.textContent = `${signed(pct)}%`;
+      stepsEl.textContent = `(${formatStat(b)} − ${formatStat(a)}) / |${formatStat(a)}| × 100 = ${signed(pct)}%`;
+    }
+    const avg = (a + b) / 2;
+    pdiffEl.textContent = avg === 0 ? "—" : `${formatStat((Math.abs(diff) / Math.abs(avg)) * 100)}%`;
+  }
+
+  orig.addEventListener("input", update);
+  next.addEventListener("input", update);
+  update();
+</script>

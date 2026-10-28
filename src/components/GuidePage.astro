@@ -14,9 +14,12 @@ export interface Props {
   faqs?: { q: string; a: string }[];
   published: string;
   modified: string;
+  /** Hero call-to-action; defaults to the main variance calculator. */
+  ctaHref?: string;
+  ctaLabel?: string;
 }
 
-const { title, description, path, heading, intro, breadcrumbName, faqs = [], published, modified } = Astro.props;
+const { title, description, path, heading, intro, breadcrumbName, faqs = [], published, modified, ctaHref = "/", ctaLabel = "Open the variance calculator" } = Astro.props;
 const url = new URL(path, Astro.site ?? "https://variancecalc.com").href;
 
 const graph: Record<string, unknown>[] = [
@@ -64,9 +67,9 @@ const schema = JSON.stringify({ "@context": "https://schema.org", "@graph": grap
         <h1 class="text-4xl font-semibold tracking-[-0.03em] text-ink text-balance sm:text-5xl">{heading}</h1>
         <p class="mt-5 max-w-xl text-base leading-relaxed text-body sm:text-lg">{intro}</p>
         <a
-          href="/"
+          href={ctaHref}
           class="mt-6 inline-flex rounded-pill bg-ink px-5 py-2.5 text-sm font-medium text-canvas transition-opacity hover:opacity-90"
-          >Open the variance calculator</a
+          >{ctaLabel}</a
         >
       </div>
     </section>

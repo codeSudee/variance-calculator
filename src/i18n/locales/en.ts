@@ -9,7 +9,7 @@
 
 const en = {
   // ── Meta / SEO ────────────────────────────────────────────────
-  "meta.title": "Variance Calculator — Online Sample & Population Variance Tool",
+  "meta.title": "Variance Calculator (Sample & Population) — Free, With Steps",
   "meta.description":
     "Free online variance calculator for sample variance and population variance. Paste any data set to get variance, standard deviation, mean, count, and sum of squares — with every step shown on your real numbers.",
   "meta.ogImageAlt": "VarianceCalc — free online variance calculator",
